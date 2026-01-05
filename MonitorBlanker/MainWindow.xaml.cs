@@ -124,7 +124,6 @@ public sealed partial class MainWindow : Window
 
             Monitors.Add(new MonitorItem
             {
-                DisplayNumber = i + 1,
                 IsPrimary = data.IsPrimary,
                 DisplayId = data.Display.DisplayId.Value,
                 IsSelected = isSelected,
@@ -167,16 +166,6 @@ public sealed partial class MainWindow : Window
             Tag = monitor
         };
 
-        var textBlock = new TextBlock
-        {
-            Text = monitor.DisplayNumber.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            FontSize = 24,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
-        border.Child = textBlock;
         UpdateMonitorVisualState(border, monitor);
 
         border.PointerPressed += (s, e) =>
@@ -199,19 +188,15 @@ public sealed partial class MainWindow : Window
 
     private static void UpdateMonitorVisualState(Border border, MonitorItem monitor)
     {
-        var textBlock = (TextBlock)border.Child;
-
         if (monitor.IsSelected)
         {
             // Selected for blanking - show as dark/will be blanked
             border.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
-            textBlock.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
         }
         else
         {
             // Not selected - show as normal/active (matches Windows Display Settings)
             border.Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 218, 218, 218));
-            textBlock.Foreground = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
         }
     }
 
@@ -242,7 +227,6 @@ public sealed partial class MonitorItem : INotifyPropertyChanged
 {
     private bool _isSelected;
 
-    public int DisplayNumber { get; set; }
     public bool IsPrimary { get; set; }
     public ulong DisplayId { get; set; }
 

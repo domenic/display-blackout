@@ -638,6 +638,36 @@ Similar shortcuts (to avoid conflicts):
 
 6. **Microsoft Store auto-publish**: Investigate if Store submission can also be automated via CI (Partner Center API).
 
+7. **Display numbering**: Consider adding an "Identify" button that briefly flashes numbers on each physical monitor, similar to Windows Display Settings.
+
+---
+
+## Known Limitations
+
+### Display Numbers Not Shown in Monitor Selector
+
+The monitor selector UI does not display numbered labels (1, 2, 3, etc.) on each monitor. This is intentional.
+
+**Problem**: There is no public Windows API to retrieve the display numbers shown in Windows Display Settings. Attempts to match them included:
+
+- **GDI device names** (`\\.\DISPLAY1`, `\\.\DISPLAY2`): These do not match Windows Settings numbering
+- **QueryDisplayConfig path array index**: Does not match
+- **QueryDisplayConfig sourceInfo.id**: Does not match
+- **QueryDisplayConfig targetInfo.id**: Returns hardware connector IDs (e.g., 4354, 4356, 4358), not display numbers
+
+**Why NVIDIA apps get it right**: NVIDIA Control Panel and NVIDIA App use proprietary NVAPI/NVWMI APIs that have access to low-level driver information not exposed through public Windows APIs. NVWMI provides a `Display::locus` property formatted as "(GPU #).(Display #)" but requires NVIDIA-specific dependencies.
+
+**Current solution**: Users identify monitors by their visual position and aspect ratio in the UI, which is unambiguous. The monitor positions accurately reflect the physical arrangement.
+
+**Future options**:
+1. Add an "Identify" button that displays numbers on physical screens (like Windows Settings does)
+2. Use NVAPI for NVIDIA GPUs (would require native dependencies and only work on NVIDIA hardware)
+3. Accept that exact number matching is not possible with public APIs
+
+**References**:
+- [Microsoft Q&A: How to get the monitor number displayed in System Settings](https://learn.microsoft.com/en-us/answers/questions/1572062/how-to-get-the-monitor-number-displayed-in-the-sys)
+- [NVAPI Reference Documentation](https://docs.nvidia.com/gameworks/content/gameworkslibrary/coresdk/nvapi/group__dispcontrol.html)
+
 ---
 
 ## References
