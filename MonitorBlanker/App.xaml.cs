@@ -13,6 +13,7 @@ public sealed partial class App : Application, IDisposable
     private Window? _hiddenWindow;
     private BlankingService? _blankingService;
     private HotkeyService? _hotkeyService;
+    private GameModeService? _gameModeService;
     private bool _disposed;
 
     public App()
@@ -31,6 +32,10 @@ public sealed partial class App : Application, IDisposable
         _hotkeyService.HotkeyPressed += (_, _) => ToggleBlanking();
         _hotkeyService.Register(_hiddenWindow);
 
+        _gameModeService = new GameModeService();
+        _gameModeService.GameModeChanged += OnGameModeChanged;
+        _gameModeService.StartMonitoring();
+
         _trayIcon = new TaskbarIcon
         {
             ToolTipText = "Monitor Blanker - Click to open settings, double-click to toggle (Win+Shift+B)",
@@ -46,6 +51,18 @@ public sealed partial class App : Application, IDisposable
         _trayIcon.DoubleClickCommand = new RelayCommand(ToggleBlanking);
 
         _trayIcon.ForceCreate();
+    }
+
+    private void OnGameModeChanged(object? sender, GameModeChangedEventArgs e)
+    {
+        if (e.IsInGameMode)
+        {
+            _blankingService?.Blank();
+        }
+        else
+        {
+            _blankingService?.Unblank();
+        }
     }
 
     private void ShowSettings()
@@ -68,6 +85,7 @@ public sealed partial class App : Application, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _gameModeService?.Dispose();
         _hotkeyService?.Dispose();
         _blankingService?.Dispose();
         _hiddenWindow?.Close();
