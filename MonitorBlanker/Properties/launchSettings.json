@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MonitorBlanker (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MonitorBlanker (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
