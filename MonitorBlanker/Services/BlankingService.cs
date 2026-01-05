@@ -5,7 +5,7 @@ namespace MonitorBlanker.Services;
 
 public sealed partial class BlankingService : IDisposable
 {
-    private readonly Dictionary<string, BlankWindow> _blankWindows = [];
+    private readonly Dictionary<string, BlankOverlay> _blankOverlays = [];
     private bool _isBlanked;
     private bool _disposed;
 
@@ -40,9 +40,8 @@ public sealed partial class BlankingService : IDisposable
             var display = displays[i];
             if (display.DisplayId.Value == primaryId) continue;
 
-            var window = new BlankWindow(display.OuterBounds);
-            window.Activate();
-            _blankWindows[display.DisplayId.Value.ToString(CultureInfo.InvariantCulture)] = window;
+            var overlay = new BlankOverlay(display.OuterBounds);
+            _blankOverlays[display.DisplayId.Value.ToString(CultureInfo.InvariantCulture)] = overlay;
         }
 
         _isBlanked = true;
@@ -53,11 +52,11 @@ public sealed partial class BlankingService : IDisposable
     {
         if (!_isBlanked) return;
 
-        foreach (var window in _blankWindows.Values)
+        foreach (var overlay in _blankOverlays.Values)
         {
-            window.Close();
+            overlay.Dispose();
         }
-        _blankWindows.Clear();
+        _blankOverlays.Clear();
 
         _isBlanked = false;
         BlankingStateChanged?.Invoke(this, new BlankingStateChangedEventArgs(false));

@@ -1,10 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
-using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.UI.Input.KeyboardAndMouse;
-using Windows.Win32.UI.WindowsAndMessaging;
 using WinRT.Interop;
 
 namespace MonitorBlanker.Services;
@@ -13,14 +9,14 @@ public sealed partial class HotkeyService : IDisposable
 {
     private const int HotkeyId = 1;
     private const uint WM_HOTKEY = 0x0312;
+    private const int GWL_WNDPROC = -4;
+    private const uint MOD_WIN = 0x0008;
+    private const uint MOD_SHIFT = 0x0004;
+    private const uint VK_B = 0x42;
 
-    [DllImport("user32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static extern LRESULT CallWindowProc(nint lpPrevWndFunc, HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam);
+    private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
 
-    private delegate LRESULT WndProcDelegate(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam);
-
-    private HWND _hwnd;
+    private nint _hwnd;
     private WndProcDelegate? _newWndProc;
     private nint _oldWndProc;
     private bool _disposed;
@@ -34,31 +30,27 @@ public sealed partial class HotkeyService : IDisposable
 
     public void Register(Window window)
     {
-        _hwnd = (HWND)WindowNative.GetWindowHandle(window);
+        _hwnd = WindowNative.GetWindowHandle(window);
 
         // Subclass the window to receive WM_HOTKEY
         _newWndProc = WndProc;
-        _oldWndProc = PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC,
+        _oldWndProc = SetWindowLongPtr(_hwnd, GWL_WNDPROC,
             Marshal.GetFunctionPointerForDelegate(_newWndProc));
 
         // Register Win+Shift+B
-        if (!PInvoke.RegisterHotKey(
-            _hwnd,
-            HotkeyId,
-            HOT_KEY_MODIFIERS.MOD_WIN | HOT_KEY_MODIFIERS.MOD_SHIFT,
-            (uint)VIRTUAL_KEY.VK_B))
+        if (!RegisterHotKey(_hwnd, HotkeyId, MOD_WIN | MOD_SHIFT, VK_B))
         {
             int error = Marshal.GetLastPInvokeError();
             throw new Win32Exception(error, "Failed to register hotkey Win+Shift+B. It may be in use by another application.");
         }
     }
 
-    private LRESULT WndProc(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
+    private nint WndProc(nint hwnd, uint msg, nint wParam, nint lParam)
     {
-        if (msg == WM_HOTKEY && (int)wParam.Value == HotkeyId)
+        if (msg == WM_HOTKEY && (int)wParam == HotkeyId)
         {
             HotkeyPressed?.Invoke(this, EventArgs.Empty);
-            return new LRESULT(0);
+            return 0;
         }
 
         return CallWindowProc(_oldWndProc, hwnd, msg, wParam, lParam);
@@ -76,15 +68,33 @@ public sealed partial class HotkeyService : IDisposable
         _disposed = true;
 
         // Unmanaged cleanup (runs in both disposing and finalizer)
-        if (_hwnd != default)
+        if (_hwnd != 0)
         {
-            PInvoke.UnregisterHotKey(_hwnd, HotkeyId);
+            UnregisterHotKey(_hwnd, HotkeyId);
 
             // Restore original window proc
             if (_oldWndProc != 0)
             {
-                PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, _oldWndProc);
+                SetWindowLongPtr(_hwnd, GWL_WNDPROC, _oldWndProc);
             }
         }
     }
+
+    [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool RegisterHotKey(nint hWnd, int id, uint fsModifiers, uint vk);
+
+    [LibraryImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool UnregisterHotKey(nint hWnd, int id);
+
+    [LibraryImport("user32.dll", EntryPoint = "CallWindowProcW")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial nint CallWindowProc(nint lpPrevWndFunc, nint hWnd, uint msg, nint wParam, nint lParam);
 }

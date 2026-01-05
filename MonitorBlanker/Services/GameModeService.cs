@@ -1,10 +1,11 @@
-using Windows.Win32;
-using Windows.Win32.UI.Shell;
+using System.Runtime.InteropServices;
 
 namespace MonitorBlanker.Services;
 
 public sealed partial class GameModeService : IDisposable
 {
+    private const int QUNS_RUNNING_D3D_FULL_SCREEN = 5;
+
     private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(2);
     private Timer? _timer;
     private bool _wasInGameMode;
@@ -38,11 +39,8 @@ public sealed partial class GameModeService : IDisposable
 
     private static bool CheckGameMode()
     {
-        if (PInvoke.SHQueryUserNotificationState(out var state).Succeeded)
-        {
-            return state == QUERY_USER_NOTIFICATION_STATE.QUNS_RUNNING_D3D_FULL_SCREEN;
-        }
-        return false;
+        return SHQueryUserNotificationState(out int state) == 0
+            && state == QUNS_RUNNING_D3D_FULL_SCREEN;
     }
 
     public void Dispose()
@@ -51,6 +49,10 @@ public sealed partial class GameModeService : IDisposable
         _disposed = true;
         StopMonitoring();
     }
+
+    [LibraryImport("shell32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial int SHQueryUserNotificationState(out int pquns);
 }
 
 public sealed class GameModeChangedEventArgs(bool isInGameMode) : EventArgs
