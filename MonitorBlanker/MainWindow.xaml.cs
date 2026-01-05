@@ -22,57 +22,105 @@ public sealed partial class MainWindow : Window
     private void LoadMonitors()
     {
         var displays = DisplayArea.FindAll();
+        if (displays.Count == 0) return;
+
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
 
-        // Find the bounding box of all monitors
-        int minX = int.MaxValue, minY = int.MaxValue;
-        int maxX = int.MinValue, maxY = int.MinValue;
+        // Reference values (in DIPs, matching Windows Display Settings at 150% DPI)
+        // User measured 1496px physical at 150% = 997 DIPs
+        const double containerWidth = 997;
+        const double baseMonitorHeight = 160; // 240px physical / 1.5
+        const double verticalPadding = 44;    // 66px physical / 1.5
+        const double monitorGap = 1.5;        // ~2px physical / 1.5
+        const double minPaddingPercent = 0.075;
+
+        // Build monitor list with visual dimensions based on aspect ratio
+        var monitorList = new List<MonitorData>();
 
         // Use indexed loop - foreach throws InvalidCastException due to CsWinRT bug:
         // https://github.com/microsoft/WindowsAppSDK/issues/3484
         for (int i = 0; i < displays.Count; i++)
         {
-            var bounds = displays[i].OuterBounds;
-            minX = Math.Min(minX, bounds.X);
-            minY = Math.Min(minY, bounds.Y);
-            maxX = Math.Max(maxX, bounds.X + bounds.Width);
-            maxY = Math.Max(maxY, bounds.Y + bounds.Height);
-        }
-
-        int totalWidth = maxX - minX;
-        int totalHeight = maxY - minY;
-
-        // Scale to fit in the canvas (max 400x200)
-        const double maxCanvasWidth = 400;
-        const double maxCanvasHeight = 200;
-        double scale = Math.Min(maxCanvasWidth / totalWidth, maxCanvasHeight / totalHeight);
-
-        for (int i = 0; i < displays.Count; i++)
-        {
             var display = displays[i];
             var bounds = display.OuterBounds;
-            bool isPrimary = display.DisplayId.Value == primaryId;
+            double aspectRatio = (double)bounds.Width / bounds.Height;
+
+            monitorList.Add(new MonitorData
+            {
+                Display = display,
+                AspectRatio = aspectRatio,
+                BaseWidth = baseMonitorHeight * aspectRatio,
+                BaseHeight = baseMonitorHeight,
+                IsPrimary = display.DisplayId.Value == primaryId
+            });
+        }
+
+        // Sort by physical X position (left to right arrangement)
+        monitorList.Sort((a, b) => a.Display.OuterBounds.X.CompareTo(b.Display.OuterBounds.X));
+
+        // Calculate total content width at base scale
+        double totalBaseWidth = 0;
+        for (int i = 0; i < monitorList.Count; i++)
+        {
+            totalBaseWidth += monitorList[i].BaseWidth;
+            if (i < monitorList.Count - 1)
+            {
+                totalBaseWidth += monitorGap;
+            }
+        }
+
+        // Calculate minimum padding and available width
+        double minPadding = containerWidth * minPaddingPercent;
+        double availableWidth = containerWidth - (2 * minPadding);
+
+        // Determine scale factor
+        double scale = 1.0;
+        if (totalBaseWidth > availableWidth)
+        {
+            scale = availableWidth / totalBaseWidth;
+        }
+
+        // Calculate actual layout dimensions
+        double layoutWidth = totalBaseWidth * scale;
+        double layoutHeight = baseMonitorHeight * scale;
+
+        // Calculate horizontal padding (center the content)
+        double horizontalPadding = (containerWidth - layoutWidth) / 2;
+
+        // Position and create monitor items
+        double currentX = 0;
+        for (int i = 0; i < monitorList.Count; i++)
+        {
+            var data = monitorList[i];
+
+            double width = data.BaseWidth * scale;
+            double height = data.BaseHeight * scale;
 
             Monitors.Add(new MonitorItem
             {
                 DisplayNumber = i + 1,
-                IsPrimary = isPrimary,
-                IsSelected = !isPrimary,
-                // Scaled and offset positions for the visual layout
-                ScaledX = (bounds.X - minX) * scale,
-                ScaledY = (bounds.Y - minY) * scale,
-                ScaledWidth = bounds.Width * scale,
-                ScaledHeight = bounds.Height * scale,
-                // Store actual bounds for blanking
-                Bounds = bounds
+                IsPrimary = data.IsPrimary,
+                IsSelected = !data.IsPrimary,
+                ScaledX = currentX,
+                ScaledY = 0,
+                ScaledWidth = width,
+                ScaledHeight = height,
+                Bounds = data.Display.OuterBounds
             });
+
+            currentX += width;
+            if (i < monitorList.Count - 1)
+            {
+                currentX += monitorGap * scale;
+            }
         }
 
-        // Set canvas size based on scaled total
-        MonitorCanvas.Width = totalWidth * scale;
-        MonitorCanvas.Height = totalHeight * scale;
+        // Set canvas size and margins
+        MonitorCanvas.Width = layoutWidth;
+        MonitorCanvas.Height = layoutHeight;
+        MonitorCanvas.Margin = new Thickness(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
 
-        // Create visual elements for each monitor
+        // Create visual elements
         foreach (var monitor in Monitors)
         {
             var border = CreateMonitorVisual(monitor);
@@ -86,8 +134,8 @@ public sealed partial class MainWindow : Window
     {
         var border = new Border
         {
-            Width = monitor.ScaledWidth - 4, // Gap between monitors
-            Height = monitor.ScaledHeight - 4,
+            Width = monitor.ScaledWidth,
+            Height = monitor.ScaledHeight,
             CornerRadius = new CornerRadius(4),
             Tag = monitor
         };
@@ -141,6 +189,15 @@ public sealed partial class MainWindow : Window
             border.BorderThickness = new Thickness(1);
             textBlock.Foreground = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
         }
+    }
+
+    private sealed class MonitorData
+    {
+        public required DisplayArea Display { get; init; }
+        public double AspectRatio { get; init; }
+        public double BaseWidth { get; init; }
+        public double BaseHeight { get; init; }
+        public bool IsPrimary { get; init; }
     }
 }
 

@@ -30,15 +30,18 @@
         <StackPanel Grid.Row="1" Spacing="16" Margin="0,24,0,0">
             <TextBlock Text="Monitors" Style="{StaticResource SubtitleTextBlockStyle}" />
 
-            <!-- Visual monitor layout -->
-            <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="24"
-                    HorizontalAlignment="Left">
-                <Canvas x:Name="MonitorCanvas" />
-            </Border>
+            <!-- Visual monitor layout - scales down with window -->
+            <Viewbox x:Name="MonitorViewbox"
+                     Stretch="Uniform"
+                     HorizontalAlignment="Left"
+                     StretchDirection="DownOnly">
+                <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="2"
+                        CornerRadius="8">
+                    <Canvas x:Name="MonitorCanvas" />
+                </Border>
+            </Viewbox>
 
             <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,8,0,8" />
 
