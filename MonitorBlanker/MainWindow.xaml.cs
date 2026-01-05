@@ -5,16 +5,20 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using MonitorBlanker.Services;
 using Windows.Graphics;
 
 namespace MonitorBlanker;
 
 public sealed partial class MainWindow : Window
 {
+    private readonly BlankingService _blankingService;
+
     public ObservableCollection<MonitorItem> Monitors { get; } = [];
 
-    public MainWindow()
+    public MainWindow(BlankingService blankingService)
     {
+        _blankingService = blankingService;
         InitializeComponent();
         LoadMonitors();
     }
@@ -25,6 +29,7 @@ public sealed partial class MainWindow : Window
         if (displays.Count == 0) return;
 
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
+        var selectedIds = _blankingService.SelectedMonitorIds;
 
         // Reference values (in DIPs, matching Windows Display Settings at 150% DPI)
         // User measured 1496px physical at 150% = 997 DIPs
@@ -96,11 +101,17 @@ public sealed partial class MainWindow : Window
             double width = data.BaseWidth * scale;
             double height = data.BaseHeight * scale;
 
+            // If no selection saved, default to all non-primary
+            bool isSelected = selectedIds != null
+                ? selectedIds.Contains(data.Display.DisplayId.Value)
+                : !data.IsPrimary;
+
             Monitors.Add(new MonitorItem
             {
                 DisplayNumber = i + 1,
                 IsPrimary = data.IsPrimary,
-                IsSelected = !data.IsPrimary,
+                DisplayId = data.Display.DisplayId.Value,
+                IsSelected = isSelected,
                 ScaledX = currentX,
                 ScaledY = 0,
                 ScaledWidth = width,
@@ -130,7 +141,7 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private static Border CreateMonitorVisual(MonitorItem monitor)
+    private Border CreateMonitorVisual(MonitorItem monitor)
     {
         var border = new Border
         {
@@ -156,6 +167,7 @@ public sealed partial class MainWindow : Window
         {
             monitor.IsSelected = !monitor.IsSelected;
             UpdateMonitorVisualState(border, monitor);
+            UpdateBlankingServiceSelection();
         };
 
         monitor.PropertyChanged += (s, e) =>
@@ -191,6 +203,19 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private void UpdateBlankingServiceSelection()
+    {
+        var selectedIds = new HashSet<ulong>();
+        foreach (var monitor in Monitors)
+        {
+            if (monitor.IsSelected)
+            {
+                selectedIds.Add(monitor.DisplayId);
+            }
+        }
+        _blankingService.UpdateSelectedMonitors(selectedIds);
+    }
+
     private sealed class MonitorData
     {
         public required DisplayArea Display { get; init; }
@@ -207,6 +232,7 @@ public sealed partial class MonitorItem : INotifyPropertyChanged
 
     public int DisplayNumber { get; set; }
     public bool IsPrimary { get; set; }
+    public ulong DisplayId { get; set; }
 
     public double ScaledX { get; set; }
     public double ScaledY { get; set; }

@@ -70,7 +70,7 @@ public sealed partial class App : Application, IDisposable
     {
         if (_settingsWindow is null)
         {
-            _settingsWindow = new MainWindow();
+            _settingsWindow = new MainWindow(_blankingService!);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         }
 
