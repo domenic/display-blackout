@@ -1,0 +1,6 @@
+# Force LF everywhere
+* text=lf
+
+# Binary files
+*.png binary
+*.ico binary

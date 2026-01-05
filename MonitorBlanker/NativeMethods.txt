@@ -1,0 +1,10 @@
+// Hotkey registration
+RegisterHotKey
+UnregisterHotKey
+
+// Window positioning (for blank windows)
+SetWindowPos
+SET_WINDOW_POS_FLAGS
+
+// Game mode detection
+SHQueryUserNotificationState
