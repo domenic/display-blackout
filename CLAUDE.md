@@ -7,3 +7,7 @@ NEVER trust your own intuition on the latest versions of things, especially pack
 ## Warning Suppression Policy
 
 Do NOT suppress warnings with #pragma or NoWarn. Instead, fix the underlying issue properly. If a warning truly cannot be fixed, discuss with the user first.
+
+## Commit Policy
+
+When in interactive debugging mode with the user, do NOT commit fixes until the user has verified they work. Wait for explicit confirmation before committing.

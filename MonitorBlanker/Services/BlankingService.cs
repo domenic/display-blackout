@@ -33,8 +33,11 @@ public sealed partial class BlankingService : IDisposable
         var displays = DisplayArea.FindAll();
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
 
-        foreach (var display in displays)
+        // Use indexed loop - foreach throws InvalidCastException due to CsWinRT bug:
+        // https://github.com/microsoft/WindowsAppSDK/issues/3484
+        for (int i = 0; i < displays.Count; i++)
         {
+            var display = displays[i];
             if (display.DisplayId.Value == primaryId) continue;
 
             var window = new BlankWindow(display.OuterBounds);

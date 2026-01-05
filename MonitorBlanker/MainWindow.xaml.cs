@@ -22,8 +22,11 @@ public sealed partial class MainWindow : Window
         var displays = DisplayArea.FindAll();
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
 
-        foreach (var display in displays)
+        // Use indexed loop - foreach throws InvalidCastException due to CsWinRT bug:
+        // https://github.com/microsoft/WindowsAppSDK/issues/3484
+        for (int i = 0; i < displays.Count; i++)
         {
+            var display = displays[i];
             bool isPrimary = display.DisplayId.Value == primaryId;
             Monitors.Add(new MonitorItem
             {

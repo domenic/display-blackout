@@ -55,13 +55,6 @@ public sealed partial class App : Application, IDisposable
 
     private void OnGameModeChanged(object? sender, GameModeChangedEventArgs e)
     {
-        // Game mode events come from Timer thread, marshal to UI thread
-        if (_hiddenWindow?.DispatcherQueue.HasThreadAccess != true)
-        {
-            _hiddenWindow?.DispatcherQueue.TryEnqueue(() => OnGameModeChanged(sender, e));
-            return;
-        }
-
         if (e.IsInGameMode)
         {
             _blankingService?.Blank();
@@ -74,13 +67,6 @@ public sealed partial class App : Application, IDisposable
 
     private void ShowSettings()
     {
-        // Ensure we're on the UI thread
-        if (_hiddenWindow?.DispatcherQueue.HasThreadAccess != true)
-        {
-            _hiddenWindow?.DispatcherQueue.TryEnqueue(ShowSettings);
-            return;
-        }
-
         if (_settingsWindow is null)
         {
             _settingsWindow = new MainWindow();
@@ -92,13 +78,6 @@ public sealed partial class App : Application, IDisposable
 
     private void ToggleBlanking()
     {
-        // Ensure we're on the UI thread
-        if (_hiddenWindow?.DispatcherQueue.HasThreadAccess != true)
-        {
-            _hiddenWindow?.DispatcherQueue.TryEnqueue(ToggleBlanking);
-            return;
-        }
-
         _blankingService?.Toggle();
     }
 
