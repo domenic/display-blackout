@@ -2,9 +2,14 @@
 RegisterHotKey
 UnregisterHotKey
 
-// Window positioning (for blank windows)
+// Window positioning and styling (for blank windows)
 SetWindowPos
 SET_WINDOW_POS_FLAGS
+GetWindowLong
+SetWindowLong
+WINDOW_LONG_PTR_INDEX
+WINDOW_STYLE
+WINDOW_EX_STYLE
 
 // Game mode detection
 SHQueryUserNotificationState

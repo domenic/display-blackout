@@ -2,6 +2,7 @@ using H.NotifyIcon;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using MonitorBlanker.Services;
 
 namespace MonitorBlanker;
 
@@ -9,6 +10,7 @@ public sealed partial class App : Application, IDisposable
 {
     private TaskbarIcon? _trayIcon;
     private MainWindow? _settingsWindow;
+    private BlankingService? _blankingService;
     private bool _disposed;
 
     public App()
@@ -18,9 +20,11 @@ public sealed partial class App : Application, IDisposable
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        _blankingService = new BlankingService();
+
         _trayIcon = new TaskbarIcon
         {
-            ToolTipText = "Monitor Blanker",
+            ToolTipText = "Monitor Blanker - Click to open settings, double-click to toggle",
             IconSource = new GeneratedIconSource
             {
                 Text = "MB",
@@ -48,13 +52,14 @@ public sealed partial class App : Application, IDisposable
 
     private void ToggleBlanking()
     {
-        // TODO: Implement blanking toggle
+        _blankingService?.Toggle();
     }
 
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
+        _blankingService?.Dispose();
         _trayIcon?.Dispose();
         GC.SuppressFinalize(this);
     }
