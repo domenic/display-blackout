@@ -34,7 +34,8 @@ public sealed partial class App : Application, IDisposable
 
         _gameModeService = new GameModeService();
         _gameModeService.GameModeChanged += OnGameModeChanged;
-        _gameModeService.StartMonitoring();
+        // TODO: Game mode detection disabled - triggers unreliably. Revisit in v2.
+        // _gameModeService.StartMonitoring();
 
         _trayIcon = new TaskbarIcon
         {
