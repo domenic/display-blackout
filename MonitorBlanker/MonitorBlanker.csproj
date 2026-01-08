@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -29,16 +29,14 @@
     <PublishAot>true</PublishAot>
     <TrimMode>full</TrimMode>
     <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
+
+    <!-- Icon configuration -->
+    <UnoIconForegroundFile>Assets\icon.svg</UnoIconForegroundFile>
+    <UnoIconBackgroundColor>transparent</UnoIconBackgroundColor>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <UnoIcon Include="Assets\icon.svg" ForegroundFile="Assets\icon.svg" Color="transparent" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +55,10 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
     <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
+    <PackageReference Include="Uno.Resizetizer" Version="1.12.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!--

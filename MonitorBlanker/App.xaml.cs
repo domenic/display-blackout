@@ -41,15 +41,11 @@ public sealed partial class App : Application, IDisposable
         // TODO: Game mode detection disabled - triggers unreliably. Revisit in v2.
         // _gameModeService.StartMonitoring();
 
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
         _trayIcon = new TaskbarIcon
         {
             ToolTipText = "Monitor Blanker - Click or Win+Shift+B to toggle, double-click for settings",
-            IconSource = new GeneratedIconSource
-            {
-                Text = "MB",
-                Foreground = new SolidColorBrush(Colors.White),
-                Background = new SolidColorBrush(Colors.DarkSlateGray)
-            },
+            Icon = new System.Drawing.Icon(iconPath),
             LeftClickCommand = new RelayCommand(ToggleBlanking),
             DoubleClickCommand = new RelayCommand(ShowSettings)
         };

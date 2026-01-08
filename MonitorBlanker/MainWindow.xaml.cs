@@ -19,6 +19,7 @@ public sealed partial class MainWindow : Window
     {
         _blankingService = blankingService;
         InitializeComponent();
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "icon.ico"));
         AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
 
         SetDefaultSize();
