@@ -79,15 +79,24 @@
                     <FontIcon Glyph="&#xEDA7;" />
                 </controls:SettingsCard.HeaderIcon>
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Border Style="{StaticResource KeyBadgeStyle}">
-                        <TextBlock Text="Win" Style="{StaticResource KeyBadgeTextStyle}" />
-                    </Border>
-                    <Border Style="{StaticResource KeyBadgeStyle}">
-                        <TextBlock Text="Shift" Style="{StaticResource KeyBadgeTextStyle}" />
-                    </Border>
-                    <Border Style="{StaticResource KeyBadgeStyle}">
-                        <TextBlock Text="B" Style="{StaticResource KeyBadgeTextStyle}" />
-                    </Border>
+                    <Grid Style="{StaticResource KeyBadgeStyle}">
+                        <Grid Style="{StaticResource KeyBadgeContentStyle}">
+                            <Viewbox>
+                                <PathIcon Data="M9 20H0V11H9V20ZM20 20H11V11H20V20ZM9 9H0V0H9V9ZM20 9H11V0H20V9Z"
+                                          Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Viewbox>
+                        </Grid>
+                    </Grid>
+                    <Grid Style="{StaticResource KeyBadgeStyle}">
+                        <Grid Style="{StaticResource KeyBadgeContentStyle}">
+                            <TextBlock Text="Shift" Style="{StaticResource KeyBadgeTextStyle}" />
+                        </Grid>
+                    </Grid>
+                    <Grid Style="{StaticResource KeyBadgeStyle}">
+                        <Grid Style="{StaticResource KeyBadgeContentStyle}">
+                            <TextBlock Text="B" Style="{StaticResource KeyBadgeTextStyle}" />
+                        </Grid>
+                    </Grid>
                 </StackPanel>
             </controls:SettingsCard>
         </StackPanel>

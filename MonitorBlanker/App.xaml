@@ -17,16 +17,29 @@
             <SolidColorBrush x:Key="MonitorSelectedBackgroundBrush" Color="Black" />
             <SolidColorBrush x:Key="MonitorSelectedHoverBackgroundBrush" Color="#333333" />
 
-            <!-- Key Badge Styles -->
-            <Style x:Key="KeyBadgeStyle" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource AccentButtonBackground}" />
-                <Setter Property="CornerRadius" Value="4" />
-                <Setter Property="Padding" Value="8,6" />
+            <!-- Key Badge Styles (matching PowerToys ShortcutControl with AccentKeyVisualStyle) -->
+            <Style x:Key="KeyBadgeStyle" TargetType="Grid">
+                <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource AccentControlElevationBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+                <Setter Property="Padding" Value="8" />
+                <Setter Property="MinWidth" Value="36" />
+                <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
             </Style>
             <Style x:Key="KeyBadgeTextStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="Foreground" Value="{ThemeResource AccentButtonForeground}" />
-                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="TextLineBounds" Value="Tight" />
+            </Style>
+            <!-- Inner container to constrain text height like PowerToys KeyCharPresenter -->
+            <Style x:Key="KeyBadgeContentStyle" TargetType="Grid">
+                <Setter Property="Height" Value="14" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
 
             <!-- Monitor ToggleButton Style -->
