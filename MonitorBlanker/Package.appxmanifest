@@ -15,7 +15,7 @@
   <mp:PhoneIdentity PhoneProductId="33be6640-5314-4d74-85b4-f224b00b17e2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>MonitorBlanker</DisplayName>
+    <DisplayName>Monitor Blanker</DisplayName>
     <PublisherDisplayName>d</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -34,7 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="MonitorBlanker"
+        DisplayName="Monitor Blanker"
         Description="Monitor Blanker">
         <uap:DefaultTile />
       </uap:VisualElements>
