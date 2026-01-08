@@ -23,7 +23,8 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <!-- CA1515: WinUI/XAML requires public classes for binding -->
-    <NoWarn>$(NoWarn);CA1515</NoWarn>
+    <!-- CS0612: WinUIEx.WindowEx exposes obsolete Icon type - https://github.com/dotMorten/WinUIEx/issues/247 -->
+    <NoWarn>$(NoWarn);CA1515;CS0612</NoWarn>
 
     <!-- AOT and Trimming -->
     <PublishAot>true</PublishAot>

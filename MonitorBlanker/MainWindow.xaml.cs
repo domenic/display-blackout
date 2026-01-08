@@ -9,7 +9,7 @@ using Windows.Graphics;
 
 namespace MonitorBlanker;
 
-public sealed partial class MainWindow : Window
+public sealed partial class MainWindow : WinUIEx.WindowEx
 {
     private readonly BlankingService _blankingService;
 
@@ -21,12 +21,6 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "icon.ico"));
         AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
-
-        // Use WinUIEx for window sizing and persistence
-        var manager = WinUIEx.WindowManager.Get(this);
-        manager.PersistenceId = "MainWindow";
-        manager.Width = 1004;
-        manager.Height = 527;
 
         LoadMonitors();
 
