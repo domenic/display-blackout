@@ -22,7 +22,6 @@ public sealed partial class BlankOverlay : IDisposable
 
     private nint _hwnd1;
     private nint _hwnd2;
-    private bool _disposed;
 
     private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
 
@@ -110,9 +109,6 @@ public sealed partial class BlankOverlay : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
         if (_hwnd1 != 0)
         {
             DestroyWindow(_hwnd1);
