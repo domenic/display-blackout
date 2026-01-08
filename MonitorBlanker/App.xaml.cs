@@ -44,10 +44,10 @@ public sealed partial class App : Application, IDisposable
         var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
         _trayIcon = new TaskbarIcon
         {
-            ToolTipText = "Monitor Blanker - Click or Win+Shift+B to toggle, double-click for settings",
+            ToolTipText = "Monitor Blanker - Click to open settings, double-click to toggle (Win+Shift+B)",
             Icon = new System.Drawing.Icon(iconPath),
-            LeftClickCommand = new RelayCommand(ToggleBlanking),
-            DoubleClickCommand = new RelayCommand(ShowSettings)
+            LeftClickCommand = new RelayCommand(ShowSettings),
+            DoubleClickCommand = new RelayCommand(ToggleBlanking)
         };
 
         _trayIcon.ForceCreate();

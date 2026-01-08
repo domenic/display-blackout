@@ -93,7 +93,7 @@
         </StackPanel>
 
         <TextBlock Grid.Row="2"
-                   Text="Click tray icon or press hotkey to toggle blanking"
+                   Text="Double-click tray icon or press hotkey to toggle blanking"
                    Style="{StaticResource CaptionTextBlockStyle}"
                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
     </Grid>
