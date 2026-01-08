@@ -5,8 +5,14 @@ using Windows.Graphics;
 namespace MonitorBlanker;
 
 /// <summary>
-/// A pure Win32 window for blanking monitors. No XAML overhead, no white flash.
+/// Pure Win32 windows for blanking monitors. Uses raw Win32 instead of XAML to avoid
+/// overhead and white flash on creation.
 /// </summary>
+/// <remarks>
+/// Each overlay uses two half-screen windows instead of one fullscreen window. This prevents
+/// Windows from detecting a "fullscreen app" and automatically enabling Focus Assist (Do Not
+/// Disturb), which would suppress notifications system-wide.
+/// </remarks>
 public sealed partial class BlankOverlay : IDisposable
 {
     private const string WindowClassName = "MonitorBlankerOverlay";
@@ -14,7 +20,8 @@ public sealed partial class BlankOverlay : IDisposable
     private static bool s_classRegistered;
     private static WndProcDelegate? s_wndProc;
 
-    private nint _hwnd;
+    private nint _hwnd1;
+    private nint _hwnd2;
     private bool _disposed;
 
     private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
@@ -23,7 +30,10 @@ public sealed partial class BlankOverlay : IDisposable
     {
         EnsureWindowClassRegistered();
 
-        _hwnd = CreateWindowExW(
+        // See class remarks for why we use two windows instead of one.
+        int halfHeight = bounds.Height / 2;
+
+        _hwnd1 = CreateWindowExW(
             0x00000080 | 0x00000008 | 0x08000000, // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE
             WindowClassName,
             null,
@@ -31,18 +41,38 @@ public sealed partial class BlankOverlay : IDisposable
             bounds.X,
             bounds.Y,
             bounds.Width,
-            bounds.Height,
+            halfHeight,
             0,
             0,
             0,
             0);
 
-        if (_hwnd == 0)
+        if (_hwnd1 == 0)
         {
             throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
 
-        ShowWindow(_hwnd, 4); // SW_SHOWNOACTIVATE
+        _hwnd2 = CreateWindowExW(
+            0x00000080 | 0x00000008 | 0x08000000, // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+            WindowClassName,
+            null,
+            0x80000000, // WS_POPUP
+            bounds.X,
+            bounds.Y + halfHeight,
+            bounds.Width,
+            bounds.Height - halfHeight,
+            0,
+            0,
+            0,
+            0);
+
+        if (_hwnd2 == 0)
+        {
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+
+        ShowWindow(_hwnd1, 4); // SW_SHOWNOACTIVATE
+        ShowWindow(_hwnd2, 4); // SW_SHOWNOACTIVATE
     }
 
     private static void EnsureWindowClassRegistered()
@@ -83,10 +113,16 @@ public sealed partial class BlankOverlay : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        if (_hwnd != 0)
+        if (_hwnd1 != 0)
         {
-            DestroyWindow(_hwnd);
-            _hwnd = 0;
+            DestroyWindow(_hwnd1);
+            _hwnd1 = 0;
+        }
+
+        if (_hwnd2 != 0)
+        {
+            DestroyWindow(_hwnd2);
+            _hwnd2 = 0;
         }
     }
 
