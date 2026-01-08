@@ -49,26 +49,19 @@ public sealed partial class MainWindow : Window
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
         var selectedIds = _blankingService.SelectedMonitorIds;
 
-        // Build monitor list from display bounds
-        // Use indexed loop - foreach throws InvalidCastException due to CsWinRT bug:
+        // Copy to a list so we can sort it later, and calculate bounding boxes.
+        //
+        // Use an indexed loop - foreach throws InvalidCastException due to CsWinRT bug:
         // https://github.com/microsoft/WindowsAppSDK/issues/3484
-        var monitorList = new List<MonitorData>();
+        var displaysOrdered = new List<DisplayArea>(displays.Count);
+        int minX = int.MaxValue, minY = int.MaxValue;
+        int maxMonitorHeight = 0;
         for (int i = 0; i < displays.Count; i++)
         {
             var display = displays[i];
-            monitorList.Add(new MonitorData
-            {
-                Display = display,
-                IsPrimary = display.DisplayId.Value == primaryId
-            });
-        }
+            displaysOrdered.Add(display);
 
-        // Calculate bounding box and find tallest monitor
-        int minX = int.MaxValue, minY = int.MaxValue;
-        int maxMonitorHeight = 0;
-        foreach (var data in monitorList)
-        {
-            var bounds = data.Display.OuterBounds;
+            var bounds = display.OuterBounds;
             minX = Math.Min(minX, bounds.X);
             minY = Math.Min(minY, bounds.Y);
             maxMonitorHeight = Math.Max(maxMonitorHeight, bounds.Height);
@@ -79,18 +72,18 @@ public sealed partial class MainWindow : Window
         double scale = targetMonitorHeight / maxMonitorHeight;
 
         // Sort by X then Y for consistent ordering (accessibility)
-        monitorList.Sort((a, b) =>
+        displaysOrdered.Sort((a, b) =>
         {
-            int xCompare = a.Display.OuterBounds.X.CompareTo(b.Display.OuterBounds.X);
-            return xCompare != 0 ? xCompare : a.Display.OuterBounds.Y.CompareTo(b.Display.OuterBounds.Y);
+            int xCompare = a.OuterBounds.X.CompareTo(b.OuterBounds.X);
+            return xCompare != 0 ? xCompare : a.OuterBounds.Y.CompareTo(b.OuterBounds.Y);
         });
 
-        // Position and create monitor items
-        int totalMonitors = monitorList.Count;
-        for (int i = 0; i < monitorList.Count; i++)
+        // Create monitor items
+        for (int i = 0; i < displaysOrdered.Count; i++)
         {
-            var data = monitorList[i];
-            var bounds = data.Display.OuterBounds;
+            var display = displaysOrdered[i];
+            var bounds = display.OuterBounds;
+            bool isPrimary = display.DisplayId.Value == primaryId;
 
             // Scale position and size relative to bounding box origin
             double scaledX = (bounds.X - minX) * scale;
@@ -100,13 +93,13 @@ public sealed partial class MainWindow : Window
 
             // If no selection saved, default to all non-primary
             bool isSelected = selectedIds != null
-                ? selectedIds.Contains(data.Display.DisplayId.Value)
-                : !data.IsPrimary;
+                ? selectedIds.Contains(display.DisplayId.Value)
+                : !isPrimary;
 
             Monitors.Add(new MonitorItem
             {
-                IsPrimary = data.IsPrimary,
-                DisplayId = data.Display.DisplayId.Value,
+                IsPrimary = isPrimary,
+                DisplayId = display.DisplayId.Value,
                 IsSelected = isSelected,
                 ScaledX = scaledX,
                 ScaledY = scaledY,
@@ -114,7 +107,7 @@ public sealed partial class MainWindow : Window
                 ScaledHeight = scaledHeight,
                 Bounds = bounds,
                 MonitorIndex = i + 1,
-                TotalMonitors = totalMonitors
+                TotalMonitors = displaysOrdered.Count
             });
         }
     }
@@ -137,11 +130,6 @@ public sealed partial class MainWindow : Window
         _blankingService.UpdateSelectedMonitors(selectedIds);
     }
 
-    private sealed class MonitorData
-    {
-        public required DisplayArea Display { get; init; }
-        public bool IsPrimary { get; init; }
-    }
 }
 
 public sealed partial class MonitorItem : INotifyPropertyChanged
