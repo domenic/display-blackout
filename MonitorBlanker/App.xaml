@@ -8,9 +8,15 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
+
+            <!-- Monitor Picker Brushes -->
+            <SolidColorBrush x:Key="MonitorPickerContainerBackgroundBrush" Color="{ThemeResource SolidBackgroundFillColorSecondary}" />
+            <SolidColorBrush x:Key="MonitorPickerContainerBorderBrush" Color="{ThemeResource SurfaceStrokeColorDefault}" />
+            <SolidColorBrush x:Key="MonitorUnselectedBackgroundBrush" Color="{ThemeResource ControlAltFillColorQuarternary}" />
+            <SolidColorBrush x:Key="MonitorUnselectedHoverBackgroundBrush" Color="{ThemeResource SubtleFillColorSecondary}" />
+            <SolidColorBrush x:Key="MonitorSelectedBackgroundBrush" Color="Black" />
+            <SolidColorBrush x:Key="MonitorSelectedHoverBackgroundBrush" Color="#333333" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

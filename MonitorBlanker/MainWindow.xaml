@@ -21,41 +21,74 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Spacing="8">
-                <TextBlock Text="Monitor Blanker" Style="{StaticResource TitleTextBlockStyle}" />
-                <TextBlock Text="Click monitors to toggle blanking. Dark monitors will be blanked."
-                           Style="{StaticResource BodyTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+            <TextBlock Grid.Row="0"
+                       Text="Click monitors to toggle blanking. Dark monitors will be blanked."
+                       Style="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
             <StackPanel Grid.Row="1" Spacing="16" Margin="0,24,0,0">
-                <TextBlock Text="Monitors" Style="{StaticResource SubtitleTextBlockStyle}" />
-
                 <!-- Visual monitor layout - scales down with window -->
                 <Viewbox x:Name="MonitorViewbox"
                          Stretch="Uniform"
                          HorizontalAlignment="Left"
                          StretchDirection="DownOnly">
-                    <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                    <Border Background="{StaticResource MonitorPickerContainerBackgroundBrush}"
+                            BorderBrush="{StaticResource MonitorPickerContainerBorderBrush}"
                             BorderThickness="1"
                             CornerRadius="8">
                         <Canvas x:Name="MonitorCanvas" />
                     </Border>
                 </Viewbox>
 
-                <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,8,0,8" />
+                <!-- Activation section -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Keyboard Shortcut" Style="{StaticResource SubtitleTextBlockStyle}" />
-                <TextBlock Text="Win + Shift + B"
-                           Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Margin="0,4,0,0" />
+                        <!-- Icon -->
+                        <FontIcon Grid.Column="0"
+                                  Glyph="&#xEDA7;"
+                                  FontSize="20"
+                                  Margin="0,0,16,0"
+                                  VerticalAlignment="Center" />
 
-                <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,8,0,8" />
+                        <!-- Text -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Activation shortcut"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="Press this shortcut to toggle blanking"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
 
-                <CheckBox x:Name="GameModeCheckBox"
-                          Content="Auto-blank in Game Mode"
-                          IsChecked="True" />
+                        <!-- Key badges -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Border Background="{ThemeResource AccentButtonBackground}"
+                                    CornerRadius="4"
+                                    Padding="8,6">
+                                <TextBlock Text="Win" FontSize="12" Foreground="{ThemeResource AccentButtonForeground}" FontWeight="SemiBold" />
+                            </Border>
+                            <Border Background="{ThemeResource AccentButtonBackground}"
+                                    CornerRadius="4"
+                                    Padding="8,6">
+                                <TextBlock Text="Shift" FontSize="12" Foreground="{ThemeResource AccentButtonForeground}" FontWeight="SemiBold" />
+                            </Border>
+                            <Border Background="{ThemeResource AccentButtonBackground}"
+                                    CornerRadius="4"
+                                    Padding="8,6">
+                                <TextBlock Text="B" FontSize="12" Foreground="{ThemeResource AccentButtonForeground}" FontWeight="SemiBold" />
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </StackPanel>
 
             <TextBlock Grid.Row="2"

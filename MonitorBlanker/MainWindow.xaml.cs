@@ -20,13 +20,15 @@ public sealed partial class MainWindow : Window
     {
         _blankingService = blankingService;
         InitializeComponent();
+        AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
+
         SetDefaultSize();
         LoadMonitors();
     }
 
     private void SetDefaultSize()
     {
-        const int preferredWidth = 1560;
+        const int preferredWidth = 1600;
         const int preferredHeight = 1080;
 
         // Get the work area of the display where this window will appear
@@ -50,7 +52,7 @@ public sealed partial class MainWindow : Window
 
         // Reference values (in DIPs, matching Windows Display Settings at 150% DPI)
         const double containerWidth = 998;
-        const double baseMonitorHeight = 160;
+        const double baseMonitorHeight = 162;
         const double verticalPadding = 44;
         const double monitorGap = 2;
         const double minPaddingPercent = 0.075;
@@ -166,12 +168,26 @@ public sealed partial class MainWindow : Window
             Tag = monitor
         };
 
-        UpdateMonitorVisualState(border, monitor);
+        bool isHovered = false;
+
+        UpdateMonitorVisualState(border, monitor, isHovered);
+
+        border.PointerEntered += (s, e) =>
+        {
+            isHovered = true;
+            UpdateMonitorVisualState(border, monitor, isHovered);
+        };
+
+        border.PointerExited += (s, e) =>
+        {
+            isHovered = false;
+            UpdateMonitorVisualState(border, monitor, isHovered);
+        };
 
         border.PointerPressed += (s, e) =>
         {
             monitor.IsSelected = !monitor.IsSelected;
-            UpdateMonitorVisualState(border, monitor);
+            UpdateMonitorVisualState(border, monitor, isHovered);
             UpdateBlankingServiceSelection();
         };
 
@@ -179,25 +195,23 @@ public sealed partial class MainWindow : Window
         {
             if (e.PropertyName == nameof(MonitorItem.IsSelected))
             {
-                UpdateMonitorVisualState(border, monitor);
+                UpdateMonitorVisualState(border, monitor, isHovered);
             }
         };
 
         return border;
     }
 
-    private static void UpdateMonitorVisualState(Border border, MonitorItem monitor)
+    private static void UpdateMonitorVisualState(Border border, MonitorItem monitor, bool isHovered)
     {
-        if (monitor.IsSelected)
+        var resourceKey = (monitor.IsSelected, isHovered) switch
         {
-            // Selected for blanking - show as dark/will be blanked
-            border.Background = new SolidColorBrush(Microsoft.UI.Colors.Black);
-        }
-        else
-        {
-            // Not selected - show as normal/active (matches Windows Display Settings)
-            border.Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 218, 218, 218));
-        }
+            (true, true) => "MonitorSelectedHoverBackgroundBrush",
+            (true, false) => "MonitorSelectedBackgroundBrush",
+            (false, true) => "MonitorUnselectedHoverBackgroundBrush",
+            (false, false) => "MonitorUnselectedBackgroundBrush"
+        };
+        border.Background = (Brush)Application.Current.Resources[resourceKey];
     }
 
     private void UpdateBlankingServiceSelection()
