@@ -20,6 +20,8 @@ public sealed partial class App : Application, IDisposable
     private SettingsService? _settingsService;
     private BlackoutService? _blackoutService;
     private HotkeyService? _hotkeyService;
+    private string? _iconActivePath;
+    private string? _iconInactivePath;
     private bool _disposed;
 
     public App()
@@ -43,12 +45,15 @@ public sealed partial class App : Application, IDisposable
         _hotkeyService.HotkeyPressed += (_, _) => ToggleBlackout();
         _hotkeyService.Register(_hiddenWindow);
 
-        var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
-        _trayIcon = new TrayIcon(1, iconPath, s_resourceLoader.GetString("TrayIconTooltip"));
+        _iconActivePath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
+        _iconInactivePath = Path.Combine(AppContext.BaseDirectory, "icon-inactive.ico");
+        _trayIcon = new TrayIcon(1, _iconInactivePath, s_resourceLoader.GetString("TrayIconTooltip"));
         _trayIcon.Selected += (_, _) => ShowSettings();
         _trayIcon.LeftDoubleClick += (_, _) => ToggleBlackout();
         _trayIcon.ContextMenu += OnTrayContextMenu;
         _trayIcon.IsVisible = true;
+
+        _blackoutService.BlackoutStateChanged += OnBlackoutStateChanged;
 
         if (openSettings)
         {
@@ -70,6 +75,12 @@ public sealed partial class App : Application, IDisposable
     private void ToggleBlackout()
     {
         _blackoutService?.Toggle();
+    }
+
+    private void OnBlackoutStateChanged(object? sender, BlackoutStateChangedEventArgs e)
+    {
+        var iconPath = e.IsBlackedOut ? _iconActivePath : _iconInactivePath;
+        _trayIcon?.SetIcon(iconPath!);
     }
 
     private void OnTrayContextMenu(TrayIcon sender, TrayIconEventArgs e)

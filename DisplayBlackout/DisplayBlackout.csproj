@@ -31,14 +31,17 @@
     <TrimMode>full</TrimMode>
     <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
 
-    <!-- Icon configuration -->
-    <UnoIconForegroundFile>Assets\icon.svg</UnoIconForegroundFile>
-    <UnoIconBackgroundColor>transparent</UnoIconBackgroundColor>
-
     <!-- Localization -->
     <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>
 
+  <!--
+    App icon configuration: We use UnoIcon for the primary icon (icon.svg) because
+    Uno.Resizetizer generates all the required Windows app assets (Store logos, tiles,
+    etc.) and updates Package.appxmanifest automatically. For the secondary tray icon
+    (icon-inactive.svg), we use ImageMagick since Uno.Resizetizer only supports one
+    UnoIcon per project.
+  -->
   <ItemGroup>
     <UnoIcon Include="Assets\icon.svg" ForegroundFile="Assets\icon.svg" Color="transparent" />
   </ItemGroup>
@@ -82,4 +85,15 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
+
+  <!-- Generate secondary tray icon from SVG using ImageMagick (see comment above for why) -->
+  <Target Name="GenerateTrayIcons" BeforeTargets="AssignTargetPaths;ResolveAssemblyReferences" Inputs="Assets\icon-inactive.svg" Outputs="Assets\icon-inactive.ico">
+    <Exec Command="magick -background none &quot;$(MSBuildProjectDirectory)\Assets\icon-inactive.svg&quot; -define icon:auto-resize=256,64,48,40,32,24,20,16 &quot;$(MSBuildProjectDirectory)\Assets\icon-inactive.ico&quot;" />
+    <ItemGroup>
+      <ContentWithTargetPath Include="Assets\icon-inactive.ico">
+        <TargetPath>icon-inactive.ico</TargetPath>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </ContentWithTargetPath>
+    </ItemGroup>
+  </Target>
 </Project>

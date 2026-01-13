@@ -3,6 +3,9 @@ bin/
 obj/
 publish/
 
+# Generated icons (built from SVG via ImageMagick)
+DisplayBlackout/Assets/icon-inactive.ico
+
 # Visual Studio
 .vs/
 *.user
