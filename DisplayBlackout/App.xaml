@@ -17,6 +17,12 @@
             <SolidColorBrush x:Key="MonitorSelectedBackgroundBrush" Color="Black" />
             <SolidColorBrush x:Key="MonitorSelectedHoverBackgroundBrush" Color="#333333" />
 
+            <!-- Settings page layout (matching Community Toolkit/PowerToys pattern) -->
+            <x:Double x:Key="SettingsCardSpacing">4</x:Double>
+            <Style x:Key="SettingsSectionHeaderTextBlockStyle" BasedOn="{StaticResource BodyStrongTextBlockStyle}" TargetType="TextBlock">
+                <Setter Property="Margin" Value="1,30,0,6" />
+            </Style>
+
             <!-- Key Badge Styles (matching PowerToys ShortcutControl with AccentKeyVisualStyle) -->
             <Style x:Key="KeyBadgeStyle" TargetType="Grid">
                 <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />

@@ -1,18 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
               <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
@@ -40,8 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- App name used throughout -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Display Blackout</value>
     <comment>The display name of the application</comment>
@@ -50,8 +125,6 @@
     <value>Black out selected displays on demand</value>
     <comment>Short description of the application</comment>
   </data>
-
-  <!-- System tray -->
   <data name="TrayIconTooltip" xml:space="preserve">
     <value>Display Blackout - Click to open settings, double-click to toggle (Win+Shift+B)</value>
     <comment>Tooltip shown when hovering over the system tray icon</comment>
@@ -68,8 +141,6 @@
     <value>Exit</value>
     <comment>Context menu item to exit the application</comment>
   </data>
-
-  <!-- Main window - using x:Uid pattern for XAML binding -->
   <data name="Instructions.Text" xml:space="preserve">
     <value>Click displays to toggle blackout. Dark displays will be blacked out.</value>
     <comment>Instructions shown at the top of the settings window</comment>
@@ -81,6 +152,26 @@
   <data name="DisplayBlackoutCard.Description" xml:space="preserve">
     <value>Black out the selected displays</value>
     <comment>Description for the blackout toggle settings card</comment>
+  </data>
+  <data name="ActivationSectionHeader.Text" xml:space="preserve">
+    <value>Activation</value>
+    <comment>Section header for activation-related settings</comment>
+  </data>
+  <data name="RunAtStartupCard.Header" xml:space="preserve">
+    <value>Run at startup</value>
+    <comment>Header for the run at startup toggle settings card</comment>
+  </data>
+  <data name="RunAtStartupCard.Description" xml:space="preserve">
+    <value>Automatically start Display Blackout when you log in</value>
+    <comment>Description for the run at startup toggle settings card</comment>
+  </data>
+  <data name="RunAtStartupDisabledByUser" xml:space="preserve">
+    <value>Disabled by system settings</value>
+    <comment>Description shown when user has disabled startup via Windows Settings or Task Manager</comment>
+  </data>
+  <data name="RunAtStartupDisabledByPolicy" xml:space="preserve">
+    <value>Disabled by your organization's policy</value>
+    <comment>Description shown when startup is disabled by group policy</comment>
   </data>
   <data name="ActivationShortcutCard.Header" xml:space="preserve">
     <value>Activation shortcut</value>
@@ -94,8 +185,6 @@
     <value>Shift</value>
     <comment>Label for the Shift key in the shortcut display</comment>
   </data>
-
-  <!-- Accessibility - format strings for display names -->
   <data name="MonitorAccessibleName" xml:space="preserve">
     <value>Display {0} of {1}</value>
     <comment>{0} is the display number, {1} is the total count</comment>
@@ -104,5 +193,4 @@
     <value>Display {0} of {1}, primary</value>
     <comment>{0} is the display number, {1} is the total count. Used for the primary display.</comment>
   </data>
-
 </root>

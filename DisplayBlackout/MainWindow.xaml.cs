@@ -5,13 +5,17 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DisplayBlackout.Services;
+using Windows.ApplicationModel;
 using Windows.Graphics;
 
 namespace DisplayBlackout;
 
 public sealed partial class MainWindow : WinUIEx.WindowEx
 {
+    private const string StartupTaskId = "DisplayBlackoutStartup";
+
     private readonly BlackoutService _blackoutService;
+    private bool _isUpdatingStartupToggle;
 
     public ObservableCollection<MonitorItem> Monitors { get; } = [];
 
@@ -28,6 +32,37 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
         // Initialize toggle state and subscribe to external changes
         BlackoutToggle.IsOn = _blackoutService.IsBlackedOut;
         _blackoutService.BlackoutStateChanged += OnBlackoutStateChanged;
+
+        // Initialize startup toggle state
+        _ = InitializeStartupToggleAsync();
+    }
+
+    private async Task InitializeStartupToggleAsync()
+    {
+        try
+        {
+            var startupTask = await StartupTask.GetAsync(StartupTaskId);
+            _isUpdatingStartupToggle = true;
+            RunAtStartupToggle.IsOn = startupTask.State == StartupTaskState.Enabled;
+
+            if (startupTask.State == StartupTaskState.DisabledByUser)
+            {
+                RunAtStartupToggle.IsEnabled = false;
+                RunAtStartupCard.Description = App.ResourceLoader.GetString("RunAtStartupDisabledByUser");
+            }
+            else if (startupTask.State == StartupTaskState.DisabledByPolicy)
+            {
+                RunAtStartupToggle.IsEnabled = false;
+                RunAtStartupCard.Description = App.ResourceLoader.GetString("RunAtStartupDisabledByPolicy");
+            }
+
+            _isUpdatingStartupToggle = false;
+        }
+        catch (FileNotFoundException)
+        {
+            // Startup task not available (e.g., manifest not properly configured) - disable the toggle
+            RunAtStartupToggle.IsEnabled = false;
+        }
     }
 
     private void OnBlackoutStateChanged(object? sender, BlackoutStateChangedEventArgs e)
@@ -46,6 +81,30 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
         {
             _blackoutService.Toggle();
         }
+    }
+
+    private async void RunAtStartupToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingStartupToggle)
+        {
+            return;
+        }
+
+        // Toggle is disabled if startup task wasn't found, so GetAsync should succeed here
+        var startupTask = await StartupTask.GetAsync(StartupTaskId);
+        if (RunAtStartupToggle.IsOn)
+        {
+            await startupTask.RequestEnableAsync();
+        }
+        else
+        {
+            startupTask.Disable();
+        }
+
+        // Refresh to show actual state (in case request was denied)
+        _isUpdatingStartupToggle = true;
+        RunAtStartupToggle.IsOn = startupTask.State == StartupTaskState.Enabled;
+        _isUpdatingStartupToggle = false;
     }
 
     private void LoadMonitors()

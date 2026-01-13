@@ -10,23 +10,25 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Width="1004"
-    Height="560">
+    Height="675"
+    PersistenceId="MainWindow">
 
     <winex:WindowEx.SystemBackdrop>
         <MicaBackdrop />
     </winex:WindowEx.SystemBackdrop>
 
-    <StackPanel Padding="30" MaxWidth="1500" HorizontalAlignment="Center" Spacing="16">
+    <StackPanel Padding="30" MaxWidth="1500" HorizontalAlignment="Center" Spacing="{StaticResource SettingsCardSpacing}">
         <TextBlock x:Uid="Instructions"
                    Style="{StaticResource BodyTextBlockStyle}"
                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                   Margin="0,0,0,8" />
+                   Margin="0,0,0,12" />
 
         <!-- Visual monitor layout - scales down with window -->
         <Viewbox x:Name="MonitorViewbox"
                  Stretch="Uniform"
                  HorizontalAlignment="Left"
-                 StretchDirection="DownOnly">
+                 StretchDirection="DownOnly"
+                 Margin="0,0,0,12">
             <Border Background="{StaticResource MonitorPickerContainerBackgroundBrush}"
                     BorderBrush="{StaticResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
@@ -65,6 +67,17 @@
         </controls:SettingsCard>
 
         <!-- Activation section -->
+        <TextBlock x:Uid="ActivationSectionHeader"
+                   Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" />
+
+        <controls:SettingsCard x:Name="RunAtStartupCard" x:Uid="RunAtStartupCard">
+            <controls:SettingsCard.HeaderIcon>
+              <FontIcon Glyph="&#xE7B5;" />
+            </controls:SettingsCard.HeaderIcon>
+            <ToggleSwitch x:Name="RunAtStartupToggle"
+                          Toggled="RunAtStartupToggle_Toggled" />
+        </controls:SettingsCard>
+
         <controls:SettingsCard x:Uid="ActivationShortcutCard">
             <controls:SettingsCard.HeaderIcon>
                 <FontIcon Glyph="&#xEDA7;" />
