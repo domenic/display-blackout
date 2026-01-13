@@ -14,7 +14,6 @@ public sealed partial class App : Application, IDisposable
     private Window? _hiddenWindow;
     private BlankingService? _blankingService;
     private HotkeyService? _hotkeyService;
-    private GameModeService? _gameModeService;
     private bool _disposed;
 
     public App()
@@ -37,11 +36,6 @@ public sealed partial class App : Application, IDisposable
         _hotkeyService.HotkeyPressed += (_, _) => ToggleBlanking();
         _hotkeyService.Register(_hiddenWindow);
 
-        _gameModeService = new GameModeService();
-        _gameModeService.GameModeChanged += OnGameModeChanged;
-        // TODO: Game mode detection disabled - triggers unreliably. Revisit in v2.
-        // _gameModeService.StartMonitoring();
-
         var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
         _trayIcon = new TrayIcon(1, iconPath, "Monitor Blanker - Click to open settings, double-click to toggle (Win+Shift+B)");
         _trayIcon.Selected += (_, _) => ShowSettings();
@@ -52,18 +46,6 @@ public sealed partial class App : Application, IDisposable
         if (openSettings)
         {
             ShowSettings();
-        }
-    }
-
-    private void OnGameModeChanged(object? sender, GameModeChangedEventArgs e)
-    {
-        if (e.IsInGameMode)
-        {
-            _blankingService?.Blank();
-        }
-        else
-        {
-            _blankingService?.Unblank();
         }
     }
 
@@ -107,7 +89,6 @@ public sealed partial class App : Application, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _gameModeService?.Dispose();
         _hotkeyService?.Dispose();
         _blankingService?.Dispose();
         _hiddenWindow?.Close();

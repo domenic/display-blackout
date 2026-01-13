@@ -7,9 +7,9 @@
 ### Goals
 
 1. **Modern Windows development**: Learn and use the latest Windows App SDK, WinUI 3, and .NET 10 AOT
-2. **Frictionless installation**: Zero prerequisites for users via native compilation
-3. **Lightweight**: Target ~20-50MB with AOT and trimming
-4. **Store distribution**: Publish via Microsoft Store and Winget with proper signing
+1. **Frictionless installation**: Zero prerequisites for users via native compilation
+1. **Lightweight**: Target ~20-50MB with AOT and trimming
+1. **Store distribution**: Publish via Microsoft Store and Winget with proper signing
 
 ---
 
@@ -63,13 +63,11 @@ WinUI 3 self-contained apps can be 100-200MB. With AOT and IL trimming (supporte
 | **Hotkey** | Default: `Win+Shift+B` (configurable). Toggles blank on/off |
 | **System tray double-click** | Toggles blank on/off |
 | **System tray single-click** | Opens settings window |
-| **Game Mode** | Auto-blank when Windows Game Mode activates; auto-unblank on exit |
 
 #### Settings Window
 
 - **Monitor selector**: Visual layout showing monitor arrangement (like Windows Display Settings). Click monitors to toggle blanking for each
 - **Hotkey configuration**: Record a new hotkey combination
-- **Game Mode toggle**: Enable/disable automatic blanking during Game Mode
 - **Start with Windows**: Toggle auto-start (default: off)
 
 #### System Tray Icon
@@ -126,7 +124,6 @@ These may be included in v1.0 if time permits:
 │                                                             │
 │  ─────────────────────────────────────────────────────────  │
 │                                                             │
-│  ☑ Auto-blank in Game Mode                                  │
 │  ☐ Start with Windows                                       │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -161,7 +158,6 @@ MonitorBlanker/
 │       ├── Services/
 │       │   ├── BlankingService.cs  # Creates/manages blank overlays
 │       │   ├── HotkeyService.cs    # Global hotkey registration
-│       │   ├── GameModeService.cs  # Game Mode detection
 │       │   ├── MonitorService.cs   # Monitor enumeration/info
 │       │   └── SettingsService.cs  # Persist/load settings
 │       ├── ViewModels/
@@ -179,7 +175,7 @@ MonitorBlanker/
 
 ### Key Implementation Details
 
-#### 1. Blank Window Creation
+#### Blank Window Creation
 
 Create a borderless black WinUI 3 window positioned on each target monitor:
 
@@ -227,7 +223,7 @@ public sealed partial class BlankWindow : Window
 - `HWND_TOPMOST`: Stays above all normal windows
 - `SWP_NOACTIVATE`: Show without activating
 
-#### 2. System Tray (NotifyIcon)
+#### System Tray (NotifyIcon)
 
 WinUI 3 doesn't have native system tray support. Options:
 
@@ -235,11 +231,11 @@ WinUI 3 doesn't have native system tray support. Options:
    - Well-maintained, WinUI 3-specific
    - Handles context menus, tooltips, balloon notifications
 
-2. **Direct Win32 via CsWin32**
+1. **Direct Win32 via CsWin32**
    - `Shell_NotifyIcon` for tray icon management
    - More control, fewer dependencies
 
-#### 3. Global Hotkey Registration
+#### Global Hotkey Registration
 
 Use CsWin32 for type-safe Win32 interop (add `RegisterHotKey` to `NativeMethods.txt`):
 
@@ -279,36 +275,7 @@ hotkeyService.Register(
 
 **Handling WM_HOTKEY**: Use a window subclass or `AppWindow` interop to receive the `WM_HOTKEY` message (value `0x0312`).
 
-#### 4. Game Mode Detection
-
-**Recommended approach** (used by PowerToys) — add `SHQueryUserNotificationState` to `NativeMethods.txt`:
-
-```csharp
-using Windows.Win32;
-using Windows.Win32.UI.Shell;
-
-public class GameModeService
-{
-    public bool IsFullScreenGameActive()
-    {
-        if (PInvoke.SHQueryUserNotificationState(out var state).Succeeded)
-        {
-            return state == QUERY_USER_NOTIFICATION_STATE.QUNS_RUNNING_D3D_FULL_SCREEN;
-        }
-        return false;
-    }
-}
-```
-
-This detects full-screen Direct3D applications. Simple, reliable, and battle-tested in PowerToys.
-
-**Polling strategy**: Use a `DispatcherTimer` or `PeriodicTimer` checking every 1-2 seconds. Low overhead since it's a single API call.
-
-**Alternative approaches** (if needed for edge cases):
-- ETW `ForegroundWindowFullScreen` events for real-time detection
-- `GetForegroundWindow()` bounds comparison for non-D3D fullscreen apps
-
-#### 5. Monitor Enumeration
+#### Monitor Enumeration
 
 Use the modern `DisplayArea` API from Windows App SDK (not legacy `EnumDisplayMonitors`):
 
@@ -342,7 +309,7 @@ watcher.Start();
 - `DisplayAreaWatcher` provides real-time notifications (no need to poll or listen for `WM_DISPLAYCHANGE`)
 - Use `OuterBounds` for blank window positioning (covers entire screen including taskbar)
 
-#### 6. Settings Persistence
+#### Settings Persistence
 
 Store settings in:
 - **Packaged app**: `Windows.Storage.ApplicationData.Current.LocalSettings`
@@ -370,15 +337,15 @@ Settings schema:
 ### Microsoft Store
 
 1. **Register as developer**: Microsoft Partner Center account (~$19 one-time)
-2. **Reserve app name**: "Monitor Blanker"
-3. **Submit MSIX package**: Signed with Store certificate
-4. **Store listing**: Screenshots, description, privacy policy
+1. **Reserve app name**: "Monitor Blanker"
+1. **Submit MSIX package**: Signed with Store certificate
+1. **Store listing**: Screenshots, description, privacy policy
 
 ### Winget
 
 1. **Create manifest**: YAML file describing the app
-2. **Submit PR**: To `microsoft/winget-pkgs` repository
-3. **Host installer**: Either link to Store or self-hosted MSIX
+1. **Submit PR**: To `microsoft/winget-pkgs` repository
+1. **Host installer**: Either link to Store or self-hosted MSIX
 
 ### CI/CD with GitHub Actions
 
@@ -450,8 +417,8 @@ jobs:
 
 **Prerequisites for Winget publishing:**
 1. First version must be manually submitted to `microsoft/winget-pkgs`
-2. Create a classic GitHub PAT with `public_repo` scope (fine-grained PATs not supported)
-3. Fork `microsoft/winget-pkgs` under the same account
+1. Create a classic GitHub PAT with `public_repo` scope (fine-grained PATs not supported)
+1. Fork `microsoft/winget-pkgs` under the same account
 
 ### Auto-Start (Start with Windows)
 
@@ -483,7 +450,7 @@ Controlled via `StartupTask` API at runtime.
 
    > **Note**: VS Code is not supported for WinUI 3 development. Visual Studio is required for XAML compilation, Hot Reload, and project templates. The `dotnet` CLI alone cannot build WinUI 3 XAML projects.
 
-2. **Windows App SDK 1.8** (included in the workload, or via NuGet)
+1. **Windows App SDK 1.8** (included in the workload, or via NuGet)
 
 ### Project Configuration
 
@@ -533,7 +500,6 @@ UnregisterHotKey
 SetWindowPos
 GetWindowLong
 SetWindowLong
-SHQueryUserNotificationState
 ```
 
 CsWin32 generates code at build time — no runtime reflection, fully AOT-compatible.
@@ -606,7 +572,6 @@ Similar shortcuts (to avoid conflicts):
 - [ ] Single-click tray icon opens settings
 - [ ] Monitor selector correctly identifies all monitors
 - [ ] Clicking monitor in selector toggles its blank state
-- [ ] Game Mode auto-blanks when entering game, unblanks when exiting
 - [ ] Hotkey change persists after restart
 - [ ] Start with Windows option works
 - [ ] Dark mode: UI respects system theme
@@ -620,25 +585,22 @@ Similar shortcuts (to avoid conflicts):
 - [ ] Primary monitor blanked
 - [ ] Monitor arrangement changes while blanked
 - [ ] Rapid toggle (no race conditions)
-- [ ] Game Mode false positives (e.g., fullscreen video)
 
 ---
 
 ## Open Questions / Future Research
 
-1. **Non-D3D fullscreen apps**: `SHQueryUserNotificationState` only detects D3D fullscreen. May need fallback for Vulkan/OpenGL or windowed-fullscreen games. Test and consider adding `GetForegroundWindow()` bounds check.
+1. **Escape hatch**: If users request it, implement triple-click corner or Escape key to unblank without hotkey.
 
-2. **Escape hatch**: If users request it, implement triple-click corner or Escape key to unblank without hotkey.
+1. **Process detection (v2)**: Use `EnumProcesses` and window enumeration to detect specific executables.
 
-3. **Process detection (v2)**: Use `EnumProcesses` and window enumeration to detect specific executables.
+1. **Mica/Acrylic backdrop**: Should settings window use Windows 11's Mica material for modern look?
 
-4. **Mica/Acrylic backdrop**: Should settings window use Windows 11's Mica material for modern look?
+1. **Localization**: Multi-language support for Store listing and UI.
 
-5. **Localization**: Multi-language support for Store listing and UI.
+1. **Microsoft Store auto-publish**: Investigate if Store submission can also be automated via CI (Partner Center API).
 
-6. **Microsoft Store auto-publish**: Investigate if Store submission can also be automated via CI (Partner Center API).
-
-7. **Display numbering**: Consider adding an "Identify" button that briefly flashes numbers on each physical monitor, similar to Windows Display Settings.
+1. **Display numbering**: Consider adding an "Identify" button that briefly flashes numbers on each physical monitor, similar to Windows Display Settings.
 
 ---
 
@@ -661,12 +623,36 @@ The monitor selector UI does not display numbered labels (1, 2, 3, etc.) on each
 
 **Future options**:
 1. Add an "Identify" button that displays numbers on physical screens (like Windows Settings does)
-2. Use NVAPI for NVIDIA GPUs (would require native dependencies and only work on NVIDIA hardware)
-3. Accept that exact number matching is not possible with public APIs
+1. Use NVAPI for NVIDIA GPUs (would require native dependencies and only work on NVIDIA hardware)
+1. Accept that exact number matching is not possible with public APIs
 
 **References**:
 - [Microsoft Q&A: How to get the monitor number displayed in System Settings](https://learn.microsoft.com/en-us/answers/questions/1572062/how-to-get-the-monitor-number-displayed-in-the-sys)
 - [NVAPI Reference Documentation](https://docs.nvidia.com/gameworks/content/gameworkslibrary/coresdk/nvapi/group__dispcontrol.html)
+
+---
+
+## Deferred Features
+
+### Auto-Blank on Game Mode (Deferred)
+
+The original design included automatic blanking when Windows Game Mode activates. This feature was implemented using `SHQueryUserNotificationState` (the same approach PowerToys uses), which returns `QUNS_RUNNING_D3D_FULL_SCREEN` when a Direct3D fullscreen app is running.
+
+**Why it was deferred**: The detection proved unreliable in practice. The API only detects exclusive fullscreen D3D applications, missing:
+- Borderless windowed games (increasingly common)
+- Vulkan/OpenGL fullscreen apps
+- Games using DXGI flip model without exclusive fullscreen
+
+Additionally, the API triggered inconsistently even for D3D fullscreen apps, leading to poor user experience. Rather than ship an unreliable feature, game mode detection was removed pending a more robust solution.
+
+**Potential future approaches**:
+- Monitor foreground window bounds vs. display bounds
+- ETW `ForegroundWindowFullScreen` events
+- Process/executable whitelist (user-configured)
+
+**References**:
+- [Game Mode API](https://learn.microsoft.com/en-us/windows/win32/api/_gamemode/)
+- [PowerToys Game Mode Detection](https://github.com/microsoft/PowerToys/blob/main/src/common/utils/game_mode.h)
 
 ---
 
@@ -681,8 +667,6 @@ The monitor selector UI does not display numbered labels (1, 2, 3, etc.) on each
 - [H.NotifyIcon.WinUI](https://github.com/HavenDV/H.NotifyIcon)
 - [CsWin32 Source Generator](https://github.com/microsoft/CsWin32)
 - [Dark Mode in Win32 Apps](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/ui/apply-windows-themes)
-- [Game Mode API](https://learn.microsoft.com/en-us/windows/win32/api/_gamemode/)
-- [PowerToys Game Mode Detection](https://github.com/microsoft/PowerToys/blob/main/src/common/utils/game_mode.h) - Simple `SHQueryUserNotificationState` approach
 - [MSIX Packaging Overview](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/packaging/)
 - [winget-releaser GitHub Action](https://github.com/vedantmgoyal9/winget-releaser) - Auto-publish to Winget
 - [DisplayArea Class](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.windowing.displayarea) - Modern monitor enumeration
@@ -692,11 +676,3 @@ The monitor selector UI does not display numbered labels (1, 2, 3, etc.) on each
 
 - [PowerToys Keyboard Shortcuts](https://defkey.com/microsoft-powertoys-2022-shortcuts)
 
----
-
-## Revision History
-
-| Date | Version | Changes |
-|------|---------|---------|
-| 2026-01-04 | 0.1 | Initial design specification |
-| 2026-01-04 | 0.2 | Modernity pass: Updated GitHub Actions to v5/v6, winget-releaser to @main, modernized blank window creation with AppWindow/SetWindowPos, replaced EnumDisplayMonitors with DisplayArea/DisplayAreaWatcher, updated hotkey/game mode code to use CsWin32, added AOT analyzers and CsWinRT settings, added NativeMethods.txt config |
