@@ -142,7 +142,7 @@
     <comment>Context menu item to exit the application</comment>
   </data>
   <data name="Instructions.Text" xml:space="preserve">
-    <value>Click displays to toggle blackout. Dark displays will be blacked out.</value>
+    <value>Click to toggle which displays will be blacked out.</value>
     <comment>Instructions shown at the top of the settings window</comment>
   </data>
   <data name="DisplayBlackoutCard.Header" xml:space="preserve">

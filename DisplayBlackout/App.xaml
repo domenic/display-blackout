@@ -13,9 +13,9 @@
             <!-- Monitor Picker Brushes -->
             <SolidColorBrush x:Key="MonitorPickerContainerBackgroundBrush" Color="{ThemeResource SolidBackgroundFillColorSecondary}" />
             <SolidColorBrush x:Key="MonitorUnselectedBackgroundBrush" Color="{ThemeResource ControlAltFillColorQuarternary}" />
-            <SolidColorBrush x:Key="MonitorUnselectedHoverBackgroundBrush" Color="{ThemeResource SubtleFillColorSecondary}" />
+            <SolidColorBrush x:Key="MonitorUnselectedHoverBackgroundBrush" Color="#666666" />
             <SolidColorBrush x:Key="MonitorSelectedBackgroundBrush" Color="Black" />
-            <SolidColorBrush x:Key="MonitorSelectedHoverBackgroundBrush" Color="#333333" />
+            <SolidColorBrush x:Key="MonitorSelectedHoverBackgroundBrush" Color="#666666" />
 
             <!-- Settings page layout (matching Community Toolkit/PowerToys pattern) -->
             <x:Double x:Key="SettingsCardSpacing">4</x:Double>

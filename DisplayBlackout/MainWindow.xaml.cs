@@ -143,6 +143,10 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             return xCompare != 0 ? xCompare : a.OuterBounds.Y.CompareTo(b.OuterBounds.Y);
         });
 
+        // Calculate unique X positions for gap calculation
+        const double gap = 2;
+        var uniqueXPositions = displaysOrdered.Select(d => d.OuterBounds.X).Distinct().ToList();
+
         // Create monitor items
         for (int i = 0; i < displaysOrdered.Count; i++)
         {
@@ -150,8 +154,11 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             var bounds = display.OuterBounds;
             bool isPrimary = display.DisplayId.Value == primaryId;
 
+            // Add horizontal gaps between monitors based on how many X boundaries we've crossed
+            int xGapCount = uniqueXPositions.Count(x => x < bounds.X);
+
             // Scale position and size relative to bounding box origin
-            double scaledX = (bounds.X - minX) * scale;
+            double scaledX = (bounds.X - minX) * scale + xGapCount * gap;
             double scaledY = (bounds.Y - minY) * scale;
             double scaledWidth = bounds.Width * scale;
             double scaledHeight = bounds.Height * scale;
