@@ -67,8 +67,7 @@ jobs:
             -p:AppxPackageDir=../packages/ `
             -p:UapAppxPackageBuildMode=SideloadOnly `
             -p:AppxBundle=Never `
-            -p:AppxPackageSigningEnabled=false `
-            -p:AppxSymbolPackageEnabled=false
+            -p:AppxPackageSigningEnabled=false
 
       - name: Upload artifact
         if: github.ref_type == 'tag'
