@@ -22,9 +22,16 @@ See the [`screenshots/`](./screenshots/) folder for more.
 
 ## Installation
 
-<!-- TODO: Add Microsoft Store link once published -->
+This program was unfortunately denied entry into the Windows Store because it did not offer ["unique lasting value"](https://learn.microsoft.com/en-us/windows/apps/publish/store-app-quality#create-amazing-apps-with-staying-power). So, it can only be installed by sideloading.
 
-Coming soon to the Microsoft Store.
+You can download the latest `.msix` package for your architecture (x64 or arm64) from the [Releases](https://github.com/domenic/display-blackout/releases) page.
+
+**Note:** These packages are currently unsigned. To install:
+
+1. Enable **Developer Mode** in Windows Settings > Privacy & security > For developers
+2. Double-click the downloaded `.msix` file to install
+
+I'm investigating code signing, but it seems expensive for Japan residents.
 
 ## Building from source
 
