@@ -1,52 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
-<Package
-  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
-  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
-  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap uap5 rescap">
-
-  <Identity
-    Name="DenicolaTech.DisplayBlackout"
-    Publisher="CN=Denicola Tech"
-    Version="1.0.0.0" />
-
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap uap5 rescap">
+  <Identity Name="DenicolaTech.DisplayBlackout" Publisher="CN=Denicola Tech" Version="1.0.1.0" />
   <Properties>
     <DisplayName>ms-resource:AppDisplayName</DisplayName>
     <PublisherDisplayName>Denicola Tech</PublisherDisplayName>
     <Logo>Assets\iconStoreLogo.png</Logo>
   </Properties>
-
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.26100.0" MaxVersionTested="10.0.26100.0" />
     <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.26100.0" MaxVersionTested="10.0.26100.0" />
   </Dependencies>
-
   <Resources>
-    <Resource Language="en-US"/>
+    <Resource Language="en-US" />
   </Resources>
-
   <Applications>
-    <Application Id="App"
-      Executable="$targetnametoken$.exe"
-      EntryPoint="$targetentrypoint$">
-      <uap:VisualElements
-        DisplayName="ms-resource:AppDisplayName"
-        Description="ms-resource:AppDescription">
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
+      <uap:VisualElements DisplayName="ms-resource:AppDisplayName" Description="ms-resource:AppDescription">
         <uap:DefaultTile />
       </uap:VisualElements>
       <Extensions>
         <uap5:Extension Category="windows.startupTask">
-          <uap5:StartupTask
-            TaskId="DisplayBlackoutStartup"
-            Enabled="false"
-            DisplayName="ms-resource:AppDisplayName" />
+          <uap5:StartupTask TaskId="DisplayBlackoutStartup" Enabled="false" DisplayName="ms-resource:AppDisplayName" />
         </uap5:Extension>
       </Extensions>
     </Application>
   </Applications>
-
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
