@@ -69,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: DisplayBlackout-${{ matrix.platform }}
-          path: packages/**/*.msix
+          path: packages/**/DisplayBlackout*.msix
 
   release:
     needs: build
@@ -96,8 +96,8 @@ jobs:
           mkdir -p release
 
           # Find and rename MSIX files
-          find artifacts/x64 -name "*.msix" -exec cp {} "release/DisplayBlackout-${VERSION}-x64.msix" \;
-          find artifacts/arm64 -name "*.msix" -exec cp {} "release/DisplayBlackout-${VERSION}-arm64.msix" \;
+          find artifacts/x64 -name "DisplayBlackout*.msix" -exec cp {} "release/DisplayBlackout-${VERSION}-x64.msix" \;
+          find artifacts/arm64 -name "DisplayBlackout*.msix" -exec cp {} "release/DisplayBlackout-${VERSION}-arm64.msix" \;
 
           ls -la release/
 
