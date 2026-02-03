@@ -24,9 +24,9 @@ See the [`screenshots/`](./screenshots/) folder for more.
 
 This program was unfortunately denied entry into the Windows Store because it did not offer ["unique lasting value"](https://learn.microsoft.com/en-us/windows/apps/publish/store-app-quality#create-amazing-apps-with-staying-power). So, it can only be installed by sideloading.
 
-You can download the latest `.msix` package for your architecture (x64 or arm64) from the [Releases](https://github.com/domenic/display-blackout/releases) page. To install:
+To install:
 
-1. Download the `.msix` file for your architecture (x64 or arm64)
+1. Download the `.msix` file for your architecture (x64 or arm64) from the [Releases](https://github.com/domenic/display-blackout/releases) page.
 1. Open PowerShell as Administrator
 1. Run: `Add-AppxPackage -Path "path\to\DisplayBlackout-x.x.x.x-x64.msix" -AllowUnsigned`
 
