@@ -111,8 +111,8 @@ jobs:
 
             These packages are currently **unsigned**. To install:
 
-            1. Enable **Developer Mode** in Windows Settings > Privacy & security > For developers
-            2. Download the MSIX for your architecture (x64 or arm64)
-            3. Double-click to install
+            1. Download the `.msix` file for your architecture (x64 or arm64)
+            1. Open PowerShell as Administrator
+            1. Run: `Add-AppxPackage -Path "path\to\DisplayBlackout-x.x.x.x-arch.msix" -AllowUnsigned`
 
-            I'm investigating code signing, but it seems expensive for Japan residents.
+            I'm investigating code signing, but it seems expensive for Japan residents. See https://github.com/domenic/display-blackout/issues/6 for more discussion.
