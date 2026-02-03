@@ -1,0 +1,118 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [x64, arm64]
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Validate version
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $tagVersion = "${{ github.ref_name }}" -replace '^v', ''
+
+          # Extract version from manifest
+          [xml]$manifest = Get-Content "DisplayBlackout/Package.appxmanifest"
+          $manifestVersion = $manifest.Package.Identity.Version
+
+          if ($tagVersion -ne $manifestVersion) {
+            Write-Error "Version mismatch: tag is v$tagVersion but manifest has $manifestVersion"
+            exit 1
+          }
+
+      - name: Install ImageMagick
+        shell: pwsh
+        run: |
+          choco install imagemagick -y
+          refreshenv
+
+      - name: Restore dependencies
+        run: dotnet restore DisplayBlackout/DisplayBlackout.csproj
+
+      - name: Build MSIX
+        run: |
+          dotnet publish DisplayBlackout/DisplayBlackout.csproj `
+            -c Release `
+            -p:Platform=${{ matrix.platform }} `
+            -p:GenerateAppxPackageOnBuild=true `
+            -p:AppxPackageDir=../packages/ `
+            -p:UapAppxPackageBuildMode=SideloadOnly `
+            -p:AppxBundle=Never `
+            -p:AppxPackageSigningEnabled=false
+
+      - name: Upload artifact
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@v5
+        with:
+          name: DisplayBlackout-${{ matrix.platform }}
+          path: packages/**/*.msix
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+
+    steps:
+      - name: Download x64 artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: DisplayBlackout-x64
+          path: artifacts/x64
+
+      - name: Download arm64 artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: DisplayBlackout-arm64
+          path: artifacts/arm64
+
+      - name: Prepare release files
+        id: prepare
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          mkdir -p release
+
+          # Find and rename MSIX files
+          find artifacts/x64 -name "*.msix" -exec cp {} "release/DisplayBlackout-${VERSION}-x64.msix" \;
+          find artifacts/arm64 -name "*.msix" -exec cp {} "release/DisplayBlackout-${VERSION}-arm64.msix" \;
+
+          ls -la release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.msix
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            These packages are currently **unsigned**. To install:
+
+            1. Enable **Developer Mode** in Windows Settings > Privacy & security > For developers
+            2. Download the MSIX for your architecture (x64 or arm64)
+            3. Double-click to install
+
+            I'm investigating code signing, but it seems expensive for Japan residents.
