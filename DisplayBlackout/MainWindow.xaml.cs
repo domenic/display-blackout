@@ -34,6 +34,9 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
 
         // Initialize startup toggle state
         _ = InitializeStartupToggleAsync();
+
+        // Initialize opacity slider
+        OpacitySlider.Value = _blackoutService.Opacity;
     }
 
     private async Task InitializeStartupToggleAsync()
@@ -203,6 +206,13 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             }
         }
         _blackoutService.UpdateSelectedMonitors(selectedBounds);
+    }
+
+    private void OpacitySlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+        int newOpacity = (int)e.NewValue;
+        if (newOpacity == _blackoutService.Opacity) return;
+        _blackoutService.UpdateOpacity(newOpacity);
     }
 
 }

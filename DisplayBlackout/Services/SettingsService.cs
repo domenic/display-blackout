@@ -6,6 +6,8 @@ namespace DisplayBlackout.Services;
 public sealed class SettingsService
 {
     private const string SelectedMonitorBoundsKey = "SelectedMonitorBounds";
+    private const string OpacityKey = "Opacity";
+    private const int DefaultOpacity = 100;
 
     // Legacy key from before we switched to bounds-based identification
     private const string LegacySelectedMonitorIdsKey = "SelectedMonitorIds";
@@ -54,5 +56,19 @@ public sealed class SettingsService
         {
             _localSettings.Values[SelectedMonitorBoundsKey] = string.Join('|', monitorBounds);
         }
+    }
+
+    public int LoadOpacity()
+    {
+        if (_localSettings.Values.TryGetValue(OpacityKey, out var value) && value is int opacity)
+        {
+            return Math.Clamp(opacity, 0, 100);
+        }
+        return DefaultOpacity;
+    }
+
+    public void SaveOpacity(int opacity)
+    {
+        _localSettings.Values[OpacityKey] = opacity;
     }
 }

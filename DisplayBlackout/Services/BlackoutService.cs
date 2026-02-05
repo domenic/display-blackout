@@ -7,6 +7,7 @@ public sealed partial class BlackoutService : IDisposable
     private readonly SettingsService _settingsService;
     private readonly Dictionary<ulong, BlackoutOverlay> _blackoutOverlays = [];
     private HashSet<string>? _selectedMonitorBounds;
+    private int _opacity;
     private bool _isBlackedOut;
     private bool _disposed;
 
@@ -14,6 +15,7 @@ public sealed partial class BlackoutService : IDisposable
     {
         _settingsService = settingsService;
         _selectedMonitorBounds = _settingsService.LoadSelectedMonitorBounds();
+        _opacity = _settingsService.LoadOpacity();
     }
 
     public bool IsBlackedOut => _isBlackedOut;
@@ -34,6 +36,26 @@ public sealed partial class BlackoutService : IDisposable
     /// Gets the currently selected monitor bounds for UI initialization.
     /// </summary>
     public IReadOnlySet<string>? SelectedMonitorBounds => _selectedMonitorBounds;
+
+    /// <summary>
+    /// Gets the current opacity percentage (0-100).
+    /// </summary>
+    public int Opacity => _opacity;
+
+    /// <summary>
+    /// Updates the opacity of the blackout overlays.
+    /// </summary>
+    public void UpdateOpacity(int opacity)
+    {
+        _opacity = opacity;
+        _settingsService.SaveOpacity(_opacity);
+
+        // Update existing overlays
+        foreach (var overlay in _blackoutOverlays.Values)
+        {
+            overlay.SetOpacity(_opacity);
+        }
+    }
 
     public void Toggle()
     {
@@ -70,7 +92,7 @@ public sealed partial class BlackoutService : IDisposable
 
             if (!shouldBlackOut) continue;
 
-            var overlay = new BlackoutOverlay(bounds);
+            var overlay = new BlackoutOverlay(bounds, _opacity);
             _blackoutOverlays[displayId] = overlay;
         }
 

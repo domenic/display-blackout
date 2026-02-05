@@ -10,8 +10,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Width="1004"
-    Height="675"
-    PersistenceId="MainWindow">
+    Height="747"
+    PersistenceId="MainWindow_v2">
 
     <winex:WindowEx.SystemBackdrop>
         <MicaBackdrop />
@@ -64,6 +64,19 @@
                 </controls:SettingsCard.HeaderIcon>
                 <ToggleSwitch x:Name="BlackoutToggle"
                               Toggled="BlackoutToggle_Toggled" />
+            </controls:SettingsCard>
+
+            <controls:SettingsCard x:Uid="OpacityCard">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE793;" />
+                </controls:SettingsCard.HeaderIcon>
+                <Slider x:Name="OpacitySlider"
+                        Width="200"
+                        Minimum="0"
+                        Maximum="100"
+                        StepFrequency="1"
+                        SnapsTo="StepValues"
+                        ValueChanged="OpacitySlider_ValueChanged" />
             </controls:SettingsCard>
 
             <!-- Activation section -->
