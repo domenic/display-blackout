@@ -17,91 +17,93 @@
         <MicaBackdrop />
     </winex:WindowEx.SystemBackdrop>
 
-    <StackPanel Padding="30" MaxWidth="1500" HorizontalAlignment="Center" Spacing="{StaticResource SettingsCardSpacing}">
-        <TextBlock x:Uid="Instructions"
-                   Style="{StaticResource BodyTextBlockStyle}"
-                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                   Margin="0,0,0,12" />
+    <ScrollViewer>
+        <StackPanel Padding="30" MaxWidth="1500" HorizontalAlignment="Center" Spacing="{StaticResource SettingsCardSpacing}">
+            <TextBlock x:Uid="Instructions"
+                       Style="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       Margin="0,0,0,12" />
 
-        <!-- Visual monitor layout - scales down with window -->
-        <Viewbox x:Name="MonitorViewbox"
-                 Stretch="Uniform"
-                 HorizontalAlignment="Left"
-                 StretchDirection="DownOnly"
-                 Margin="0,0,0,12">
-            <Border Background="{StaticResource MonitorPickerContainerBackgroundBrush}"
-                    BorderBrush="{StaticResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="44">
-                <ItemsControl x:Name="MonitorItemsControl" ItemsSource="{x:Bind Monitors}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Grid />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="local:MonitorItem">
-                            <ToggleButton Style="{StaticResource MonitorToggleButtonStyle}"
-                                          Width="{x:Bind ScaledWidth}"
-                                          Height="{x:Bind ScaledHeight}"
-                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                          AutomationProperties.Name="{x:Bind AccessibleName}"
-                                          HorizontalAlignment="Left"
-                                          VerticalAlignment="Top"
-                                          Margin="{x:Bind PositionMargin}"
-                                          Click="MonitorToggleButton_Click" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
-        </Viewbox>
+            <!-- Visual monitor layout - scales down with window -->
+            <Viewbox x:Name="MonitorViewbox"
+                     Stretch="Uniform"
+                     HorizontalAlignment="Left"
+                     StretchDirection="DownOnly"
+                     Margin="0,0,0,12">
+                <Border Background="{StaticResource MonitorPickerContainerBackgroundBrush}"
+                        BorderBrush="{StaticResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="44">
+                    <ItemsControl x:Name="MonitorItemsControl" ItemsSource="{x:Bind Monitors}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Grid />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="local:MonitorItem">
+                                <ToggleButton Style="{StaticResource MonitorToggleButtonStyle}"
+                                              Width="{x:Bind ScaledWidth}"
+                                              Height="{x:Bind ScaledHeight}"
+                                              IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                              AutomationProperties.Name="{x:Bind AccessibleName}"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Top"
+                                              Margin="{x:Bind PositionMargin}"
+                                              Click="MonitorToggleButton_Click" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </Viewbox>
 
-        <!-- Blackout toggle section -->
-        <controls:SettingsCard x:Uid="DisplayBlackoutCard">
-            <controls:SettingsCard.HeaderIcon>
-                <ImageIcon Source="ms-appx:///Assets/iconLogo.targetsize-24.png" />
-            </controls:SettingsCard.HeaderIcon>
-            <ToggleSwitch x:Name="BlackoutToggle"
-                          Toggled="BlackoutToggle_Toggled" />
-        </controls:SettingsCard>
+            <!-- Blackout toggle section -->
+            <controls:SettingsCard x:Uid="DisplayBlackoutCard">
+                <controls:SettingsCard.HeaderIcon>
+                    <ImageIcon Source="ms-appx:///Assets/iconLogo.targetsize-24.png" />
+                </controls:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="BlackoutToggle"
+                              Toggled="BlackoutToggle_Toggled" />
+            </controls:SettingsCard>
 
-        <!-- Activation section -->
-        <TextBlock x:Uid="ActivationSectionHeader"
-                   Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" />
+            <!-- Activation section -->
+            <TextBlock x:Uid="ActivationSectionHeader"
+                       Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" />
 
-        <controls:SettingsCard x:Name="RunAtStartupCard" x:Uid="RunAtStartupCard">
-            <controls:SettingsCard.HeaderIcon>
-              <FontIcon Glyph="&#xE7B5;" />
-            </controls:SettingsCard.HeaderIcon>
-            <ToggleSwitch x:Name="RunAtStartupToggle"
-                          Toggled="RunAtStartupToggle_Toggled" />
-        </controls:SettingsCard>
+            <controls:SettingsCard x:Name="RunAtStartupCard" x:Uid="RunAtStartupCard">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE7B5;" />
+                </controls:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="RunAtStartupToggle"
+                              Toggled="RunAtStartupToggle_Toggled" />
+            </controls:SettingsCard>
 
-        <controls:SettingsCard x:Uid="ActivationShortcutCard">
-            <controls:SettingsCard.HeaderIcon>
-                <FontIcon Glyph="&#xEDA7;" />
-            </controls:SettingsCard.HeaderIcon>
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <Grid Style="{StaticResource KeyBadgeStyle}">
-                    <Grid Style="{StaticResource KeyBadgeContentStyle}">
-                        <Viewbox>
-                            <PathIcon Data="M9 20H0V11H9V20ZM20 20H11V11H20V20ZM9 9H0V0H9V9ZM20 9H11V0H20V9Z"
-                                      Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                        </Viewbox>
+            <controls:SettingsCard x:Uid="ActivationShortcutCard">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xEDA7;" />
+                </controls:SettingsCard.HeaderIcon>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Grid Style="{StaticResource KeyBadgeStyle}">
+                        <Grid Style="{StaticResource KeyBadgeContentStyle}">
+                            <Viewbox>
+                                <PathIcon Data="M9 20H0V11H9V20ZM20 20H11V11H20V20ZM9 9H0V0H9V9ZM20 9H11V0H20V9Z"
+                                          Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Viewbox>
+                        </Grid>
                     </Grid>
-                </Grid>
-                <Grid Style="{StaticResource KeyBadgeStyle}">
-                    <Grid Style="{StaticResource KeyBadgeContentStyle}">
-                        <TextBlock x:Uid="KeyShift" Style="{StaticResource KeyBadgeTextStyle}" />
+                    <Grid Style="{StaticResource KeyBadgeStyle}">
+                        <Grid Style="{StaticResource KeyBadgeContentStyle}">
+                            <TextBlock x:Uid="KeyShift" Style="{StaticResource KeyBadgeTextStyle}" />
+                        </Grid>
                     </Grid>
-                </Grid>
-                <Grid Style="{StaticResource KeyBadgeStyle}">
-                    <Grid Style="{StaticResource KeyBadgeContentStyle}">
-                        <TextBlock Text="B" Style="{StaticResource KeyBadgeTextStyle}" />
+                    <Grid Style="{StaticResource KeyBadgeStyle}">
+                        <Grid Style="{StaticResource KeyBadgeContentStyle}">
+                            <TextBlock Text="B" Style="{StaticResource KeyBadgeTextStyle}" />
+                        </Grid>
                     </Grid>
-                </Grid>
-            </StackPanel>
-        </controls:SettingsCard>
-    </StackPanel>
+                </StackPanel>
+            </controls:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
 </winex:WindowEx>
