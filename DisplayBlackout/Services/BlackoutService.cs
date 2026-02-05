@@ -6,14 +6,14 @@ public sealed partial class BlackoutService : IDisposable
 {
     private readonly SettingsService _settingsService;
     private readonly Dictionary<ulong, BlackoutOverlay> _blackoutOverlays = [];
-    private HashSet<ulong>? _selectedMonitorIds;
+    private HashSet<string>? _selectedMonitorBounds;
     private bool _isBlackedOut;
     private bool _disposed;
 
     public BlackoutService(SettingsService settingsService)
     {
         _settingsService = settingsService;
-        _selectedMonitorIds = _settingsService.LoadSelectedMonitorIds();
+        _selectedMonitorBounds = _settingsService.LoadSelectedMonitorBounds();
     }
 
     public bool IsBlackedOut => _isBlackedOut;
@@ -21,18 +21,19 @@ public sealed partial class BlackoutService : IDisposable
     public event EventHandler<BlackoutStateChangedEventArgs>? BlackoutStateChanged;
 
     /// <summary>
-    /// Updates which monitors should be blacked out. Null means default (all non-primary).
+    /// Updates which monitors should be blacked out using their bounds as stable identifiers.
+    /// Null means default (all non-primary).
     /// </summary>
-    public void UpdateSelectedMonitors(HashSet<ulong>? monitorIds)
+    public void UpdateSelectedMonitors(HashSet<string>? monitorBounds)
     {
-        _selectedMonitorIds = monitorIds;
-        _settingsService.SaveSelectedMonitorIds(monitorIds);
+        _selectedMonitorBounds = monitorBounds;
+        _settingsService.SaveSelectedMonitorBounds(monitorBounds);
     }
 
     /// <summary>
-    /// Gets the currently selected monitor IDs for UI initialization.
+    /// Gets the currently selected monitor bounds for UI initialization.
     /// </summary>
-    public IReadOnlySet<ulong>? SelectedMonitorIds => _selectedMonitorIds;
+    public IReadOnlySet<string>? SelectedMonitorBounds => _selectedMonitorBounds;
 
     public void Toggle()
     {
@@ -59,15 +60,17 @@ public sealed partial class BlackoutService : IDisposable
         {
             var display = displays[i];
             var displayId = display.DisplayId.Value;
+            var bounds = display.OuterBounds;
+            var boundsKey = SettingsService.GetMonitorKey(bounds);
 
             // If selection is set, use it; otherwise default to all non-primary
-            bool shouldBlackOut = _selectedMonitorIds != null
-                ? _selectedMonitorIds.Contains(displayId)
+            bool shouldBlackOut = _selectedMonitorBounds != null
+                ? _selectedMonitorBounds.Contains(boundsKey)
                 : displayId != primaryId;
 
             if (!shouldBlackOut) continue;
 
-            var overlay = new BlackoutOverlay(display.OuterBounds);
+            var overlay = new BlackoutOverlay(bounds);
             _blackoutOverlays[displayId] = overlay;
         }
 
