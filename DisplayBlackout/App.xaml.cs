@@ -14,6 +14,7 @@ public sealed partial class App : Application, IDisposable
 
     private TrayIcon? _trayIcon;
     private MainWindow? _settingsWindow;
+    private bool _isShowingSettings;
     private Window? _hiddenWindow;
     private SettingsService? _settingsService;
     private BlackoutService? _blackoutService;
@@ -61,10 +62,16 @@ public sealed partial class App : Application, IDisposable
 
     private void ShowSettings()
     {
+        // Guard against rapid calls (e.g., double-clicking tray icon) that could create
+        // multiple windows if a second call arrives while the constructor is still running.
+        if (_isShowingSettings) return;
+
         if (_settingsWindow is null)
         {
+            _isShowingSettings = true;
             _settingsWindow = new MainWindow(_blackoutService!);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            _isShowingSettings = false;
         }
 
         _settingsWindow.Activate();
