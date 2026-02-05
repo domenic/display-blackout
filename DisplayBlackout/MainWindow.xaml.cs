@@ -112,7 +112,6 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
         if (displays.Count == 0) return;
 
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
-        var selectedIds = _blackoutService.SelectedMonitorIds;
 
         // Copy to a list so we can sort it later, and calculate bounding boxes.
         //
@@ -147,12 +146,16 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
         const double gap = 2;
         var uniqueXPositions = displaysOrdered.Select(d => d.OuterBounds.X).Distinct().ToList();
 
+        // Get selected monitor bounds (stable identifiers)
+        var selectedBounds = _blackoutService.SelectedMonitorBounds;
+
         // Create monitor items
         for (int i = 0; i < displaysOrdered.Count; i++)
         {
             var display = displaysOrdered[i];
             var bounds = display.OuterBounds;
             bool isPrimary = display.DisplayId.Value == primaryId;
+            var boundsKey = SettingsService.GetMonitorKey(bounds);
 
             // Add horizontal gaps between monitors based on how many X boundaries we've crossed
             int xGapCount = uniqueXPositions.Count(x => x < bounds.X);
@@ -164,14 +167,15 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             double scaledHeight = bounds.Height * scale;
 
             // If no selection saved, default to all non-primary
-            bool isSelected = selectedIds != null
-                ? selectedIds.Contains(display.DisplayId.Value)
+            bool isSelected = selectedBounds != null
+                ? selectedBounds.Contains(boundsKey)
                 : !isPrimary;
 
             Monitors.Add(new MonitorItem
             {
                 IsPrimary = isPrimary,
                 DisplayId = display.DisplayId.Value,
+                BoundsKey = boundsKey,
                 IsSelected = isSelected,
                 ScaledX = scaledX,
                 ScaledY = scaledY,
@@ -191,15 +195,15 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
 
     private void UpdateBlackoutServiceSelection()
     {
-        var selectedIds = new HashSet<ulong>();
+        var selectedBounds = new HashSet<string>();
         foreach (var monitor in Monitors)
         {
             if (monitor.IsSelected)
             {
-                selectedIds.Add(monitor.DisplayId);
+                selectedBounds.Add(monitor.BoundsKey);
             }
         }
-        _blackoutService.UpdateSelectedMonitors(selectedIds);
+        _blackoutService.UpdateSelectedMonitors(selectedBounds);
     }
 
 }
@@ -208,6 +212,7 @@ public sealed partial class MonitorItem : INotifyPropertyChanged
 {
     public bool IsPrimary { get; set; }
     public ulong DisplayId { get; set; }
+    public string BoundsKey { get; set; } = string.Empty;
 
     public double ScaledX { get; set; }
     public double ScaledY { get; set; }
