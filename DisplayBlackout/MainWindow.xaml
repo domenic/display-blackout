@@ -18,23 +18,22 @@
     </winex:WindowEx.SystemBackdrop>
 
     <ScrollViewer>
-        <StackPanel Padding="30" MaxWidth="1500" HorizontalAlignment="Center" Spacing="{StaticResource SettingsCardSpacing}">
+        <StackPanel Padding="30" MaxWidth="1500" HorizontalAlignment="Stretch" Spacing="{StaticResource SettingsCardSpacing}">
             <TextBlock x:Uid="Instructions"
                        Style="{StaticResource BodyTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        Margin="0,0,0,12" />
 
             <!-- Visual monitor layout - scales down with window -->
-            <Viewbox x:Name="MonitorViewbox"
-                     Stretch="Uniform"
-                     HorizontalAlignment="Left"
-                     StretchDirection="DownOnly"
-                     Margin="0,0,0,12">
-                <Border Background="{StaticResource MonitorPickerContainerBackgroundBrush}"
-                        BorderBrush="{StaticResource CardStrokeColorDefaultBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="44">
+            <Border Background="{StaticResource MonitorPickerContainerBackgroundBrush}"
+                    BorderBrush="{StaticResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="44"
+                    Margin="0,0,0,12">
+                <Viewbox x:Name="MonitorViewbox"
+                         Stretch="Uniform"
+                         StretchDirection="DownOnly">
                     <ItemsControl x:Name="MonitorItemsControl" ItemsSource="{x:Bind Monitors}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -55,8 +54,8 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                </Border>
-            </Viewbox>
+                </Viewbox>
+            </Border>
 
             <!-- Blackout toggle section -->
             <controls:SettingsCard x:Uid="DisplayBlackoutCard">
