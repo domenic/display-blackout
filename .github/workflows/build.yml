@@ -44,6 +44,16 @@ jobs:
             exit 1
           }
 
+      - name: Set release publisher identity
+        shell: pwsh
+        run: |
+          # The manifest uses a simple publisher for local development, but releases
+          # need the full publisher identity with OID for sideloading compatibility
+          $manifestPath = "DisplayBlackout/Package.appxmanifest"
+          [xml]$manifest = Get-Content $manifestPath
+          $manifest.Package.Identity.Publisher = "CN=Denicola Tech, OID.2.25.311729368913984317654407730594956997722=1"
+          $manifest.Save($manifestPath)
+
       - name: Install ImageMagick
         shell: pwsh
         run: |
