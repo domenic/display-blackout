@@ -46,8 +46,8 @@ public sealed partial class App : Application, IDisposable
         _iconActivePath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
         _iconInactivePath = Path.Combine(AppContext.BaseDirectory, "icon-inactive.ico");
         _trayIcon = new TrayIcon(1, _iconInactivePath, s_resourceLoader.GetString("TrayIconTooltip"));
-        _trayIcon.Selected += (_, _) => ShowSettings();
-        _trayIcon.LeftDoubleClick += (_, _) => ToggleBlackout();
+        _trayIcon.Selected += (_, _) => ToggleBlackout();
+        _trayIcon.LeftDoubleClick += (_, _) => ShowSettings();
         _trayIcon.ContextMenu += OnTrayContextMenu;
         _trayIcon.IsVisible = true;
 
