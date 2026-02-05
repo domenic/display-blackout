@@ -25,15 +25,18 @@ public sealed partial class BlackoutOverlay : IDisposable
 
     private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
 
-    public BlackoutOverlay(RectInt32 bounds)
+    public BlackoutOverlay(RectInt32 bounds, int opacityPercent = 100)
     {
         EnsureWindowClassRegistered();
 
         // See class remarks for why we use two windows instead of one.
         int halfHeight = bounds.Height / 2;
 
+        // WS_EX_LAYERED (0x00080000) enables per-window alpha transparency
+        const uint exStyle = 0x00000080 | 0x00000008 | 0x08000000 | 0x00080000; // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED
+
         _hwnd1 = CreateWindowExW(
-            0x00000080 | 0x00000008 | 0x08000000, // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+            exStyle,
             WindowClassName,
             null,
             0x80000000, // WS_POPUP
@@ -52,7 +55,7 @@ public sealed partial class BlackoutOverlay : IDisposable
         }
 
         _hwnd2 = CreateWindowExW(
-            0x00000080 | 0x00000008 | 0x08000000, // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE
+            exStyle,
             WindowClassName,
             null,
             0x80000000, // WS_POPUP
@@ -70,8 +73,30 @@ public sealed partial class BlackoutOverlay : IDisposable
             throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
 
+        // Set initial opacity
+        SetOpacity(opacityPercent);
+
         ShowWindow(_hwnd1, 4); // SW_SHOWNOACTIVATE
         ShowWindow(_hwnd2, 4); // SW_SHOWNOACTIVATE
+    }
+
+    /// <summary>
+    /// Sets the opacity of the overlay windows.
+    /// </summary>
+    /// <param name="opacityPercent">Opacity percentage from 0 (transparent) to 100 (opaque).</param>
+    public void SetOpacity(int opacityPercent)
+    {
+        byte alpha = (byte)(opacityPercent * 255 / 100);
+        const uint LWA_ALPHA = 0x00000002;
+
+        if (_hwnd1 != 0)
+        {
+            SetLayeredWindowAttributes(_hwnd1, 0, alpha, LWA_ALPHA);
+        }
+        if (_hwnd2 != 0)
+        {
+            SetLayeredWindowAttributes(_hwnd2, 0, alpha, LWA_ALPHA);
+        }
     }
 
     private static void EnsureWindowClassRegistered()
@@ -175,4 +200,9 @@ public sealed partial class BlackoutOverlay : IDisposable
     [LibraryImport("user32.dll")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static partial nint LoadCursorW(nint hInstance, int lpCursorName);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetLayeredWindowAttributes(nint hwnd, uint crKey, byte bAlpha, uint dwFlags);
 }

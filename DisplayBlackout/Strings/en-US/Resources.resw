@@ -193,4 +193,12 @@
     <value>Display {0} of {1}, primary</value>
     <comment>{0} is the display number, {1} is the total count. Used for the primary display.</comment>
   </data>
+  <data name="OpacityCard.Header" xml:space="preserve">
+    <value>Opacity (%)</value>
+    <comment>Header for the opacity slider settings card</comment>
+  </data>
+  <data name="OpacityCard.Description" xml:space="preserve">
+    <value>Adjust how dark the blackout overlay appears</value>
+    <comment>Description for the opacity slider settings card</comment>
+  </data>
 </root>
