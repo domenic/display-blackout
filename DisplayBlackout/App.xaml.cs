@@ -79,6 +79,15 @@ public sealed partial class App : Application, IDisposable
     {
         var iconPath = e.IsBlackedOut ? _iconActivePath : _iconInactivePath;
         _trayIcon?.SetIcon(iconPath!);
+
+        // Force tooltip refresh - the setter only updates if the value changes,
+        // but changing the icon can cause the tooltip to break
+        if (_trayIcon != null)
+        {
+            var tooltip = s_resourceLoader.GetString("TrayIconTooltip");
+            _trayIcon.Tooltip = string.Empty;
+            _trayIcon.Tooltip = tooltip;
+        }
     }
 
     private void OnTrayContextMenu(TrayIcon sender, TrayIconEventArgs e)
