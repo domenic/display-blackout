@@ -126,7 +126,7 @@
     <comment>Short description of the application</comment>
   </data>
   <data name="TrayIconTooltip" xml:space="preserve">
-    <value>Display Blackout - Click to open settings, double-click to toggle (Win+Shift+B)</value>
+    <value>Display Blackout - Click to toggle (Win+Shift+B), double-click to open settings</value>
     <comment>Tooltip shown when hovering over the system tray icon</comment>
   </data>
   <data name="ContextMenuSettings" xml:space="preserve">
