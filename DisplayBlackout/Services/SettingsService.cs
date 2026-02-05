@@ -7,12 +7,25 @@ public sealed class SettingsService
 {
     private const string SelectedMonitorBoundsKey = "SelectedMonitorBounds";
 
+    // Legacy key from before we switched to bounds-based identification
+    private const string LegacySelectedMonitorIdsKey = "SelectedMonitorIds";
+
     private readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
+
+    public SettingsService()
+    {
+        // Clean up legacy setting if present
+        _localSettings.Values.Remove(LegacySelectedMonitorIdsKey);
+    }
 
     /// <summary>
     /// Creates a stable identifier for a monitor based on its bounds.
     /// Format: "X,Y,W,H" (e.g., "0,0,1920,1080")
     /// </summary>
+    /// <remarks>
+    /// We use bounds instead of display IDs because display IDs can change across reboots
+    /// on some systems, causing users to lose their monitor selection.
+    /// </remarks>
     public static string GetMonitorKey(RectInt32 bounds)
         => $"{bounds.X},{bounds.Y},{bounds.Width},{bounds.Height}";
 
