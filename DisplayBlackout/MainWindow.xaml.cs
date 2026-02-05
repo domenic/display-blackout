@@ -174,7 +174,6 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             Monitors.Add(new MonitorItem
             {
                 IsPrimary = isPrimary,
-                DisplayId = display.DisplayId.Value,
                 BoundsKey = boundsKey,
                 IsSelected = isSelected,
                 ScaledX = scaledX,
@@ -211,7 +210,6 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
 public sealed partial class MonitorItem : INotifyPropertyChanged
 {
     public bool IsPrimary { get; set; }
-    public ulong DisplayId { get; set; }
     public string BoundsKey { get; set; } = string.Empty;
 
     public double ScaledX { get; set; }
