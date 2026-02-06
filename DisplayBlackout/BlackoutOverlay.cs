@@ -18,6 +18,7 @@ public sealed partial class BlackoutOverlay : IDisposable
     private const string WindowClassName = "DisplayBlackoutOverlay";
     private const uint WS_EX_TRANSPARENT = 0x00000020;
     private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+    private const uint EVENT_OBJECT_FOCUS = 0x8005;
     private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
 
     private static readonly object s_classLock = new();
@@ -25,7 +26,8 @@ public sealed partial class BlackoutOverlay : IDisposable
     private static WndProcDelegate? s_wndProc;
 
     private static readonly List<BlackoutOverlay> s_activeOverlays = [];
-    private static nint s_winEventHook;
+    private static nint s_foregroundHook;
+    private static nint s_focusHook;
     private static WinEventDelegate? s_winEventProc;
 
     private delegate void WinEventDelegate(
@@ -170,12 +172,20 @@ public sealed partial class BlackoutOverlay : IDisposable
 
     private static void EnsureWinEventHookInstalled()
     {
-        if (s_winEventHook != 0) return;
+        if (s_foregroundHook != 0) return;
 
         s_winEventProc = WinEventProc;
-        s_winEventHook = SetWinEventHook(
+        s_foregroundHook = SetWinEventHook(
             EVENT_SYSTEM_FOREGROUND,
             EVENT_SYSTEM_FOREGROUND,
+            0,
+            s_winEventProc,
+            0,
+            0,
+            WINEVENT_OUTOFCONTEXT);
+        s_focusHook = SetWinEventHook(
+            EVENT_OBJECT_FOCUS,
+            EVENT_OBJECT_FOCUS,
             0,
             s_winEventProc,
             0,
@@ -246,10 +256,12 @@ public sealed partial class BlackoutOverlay : IDisposable
         lock (s_activeOverlays)
         {
             s_activeOverlays.Remove(this);
-            if (s_activeOverlays.Count == 0 && s_winEventHook != 0)
+            if (s_activeOverlays.Count == 0 && s_foregroundHook != 0)
             {
-                UnhookWinEvent(s_winEventHook);
-                s_winEventHook = 0;
+                UnhookWinEvent(s_foregroundHook);
+                UnhookWinEvent(s_focusHook);
+                s_foregroundHook = 0;
+                s_focusHook = 0;
                 s_winEventProc = null;
             }
         }
