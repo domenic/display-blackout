@@ -15,18 +15,27 @@ public sealed partial class SystemEventService : IDisposable
     private const uint MOD_WIN = 0x0008;
     private const uint MOD_SHIFT = 0x0004;
     private const uint VK_B = 0x42;
+    private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+    private const uint EVENT_OBJECT_FOCUS = 0x8005;
+    private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
 
     private static readonly WndProcDelegate s_wndProc = WndProc;
+    private static readonly WinEventDelegate s_winEventProc = WinEventProc;
 
     public static SystemEventService Instance { get; } = new();
 
     private nint _hwnd;
-    private bool _disposed;
+    private nint _foregroundHook;
+    private nint _focusHook;
 
     private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
+    private delegate void WinEventDelegate(
+        nint hWinEventHook, uint eventType, nint hwnd, int idObject,
+        int idChild, uint idEventThread, uint dwmsEventTime);
 
     public event EventHandler? HotkeyPressed;
     public event EventHandler? DisplayChanged;
+    public event EventHandler? FocusChanged;
 
     static SystemEventService() { }
 
@@ -68,6 +77,31 @@ public sealed partial class SystemEventService : IDisposable
             DestroyWindow(_hwnd);
             throw new Win32Exception(error, "Failed to register hotkey Win+Shift+B. It may be in use by another application.");
         }
+
+        // Install WinEvent hooks for focus changes
+        _foregroundHook = SetWinEventHook(
+            EVENT_SYSTEM_FOREGROUND,
+            EVENT_SYSTEM_FOREGROUND,
+            0,
+            s_winEventProc,
+            0,
+            0,
+            WINEVENT_OUTOFCONTEXT);
+        _focusHook = SetWinEventHook(
+            EVENT_OBJECT_FOCUS,
+            EVENT_OBJECT_FOCUS,
+            0,
+            s_winEventProc,
+            0,
+            0,
+            WINEVENT_OUTOFCONTEXT);
+    }
+
+    private static void WinEventProc(
+        nint hWinEventHook, uint eventType, nint hwnd, int idObject,
+        int idChild, uint idEventThread, uint dwmsEventTime)
+    {
+        Instance.FocusChanged?.Invoke(Instance, EventArgs.Empty);
     }
 
     private static nint WndProc(nint hwnd, uint msg, nint wParam, nint lParam)
@@ -88,9 +122,16 @@ public sealed partial class SystemEventService : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
+        if (_foregroundHook != 0)
+        {
+            UnhookWinEvent(_foregroundHook);
+            _foregroundHook = 0;
+        }
+        if (_focusHook != 0)
+        {
+            UnhookWinEvent(_focusHook);
+            _focusHook = 0;
+        }
         if (_hwnd != 0)
         {
             UnregisterHotKey(_hwnd, HotkeyId);
@@ -149,4 +190,15 @@ public sealed partial class SystemEventService : IDisposable
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool UnregisterHotKey(nint hWnd, int id);
+
+    [LibraryImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial nint SetWinEventHook(
+        uint eventMin, uint eventMax, nint hmodWinEventProc,
+        WinEventDelegate pfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+    [LibraryImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool UnhookWinEvent(nint hWinEventHook);
 }

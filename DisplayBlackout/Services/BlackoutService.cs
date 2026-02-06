@@ -115,6 +115,17 @@ public sealed partial class BlackoutService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Brings all overlay windows to the front of the Z-order.
+    /// </summary>
+    public void BringAllToFront()
+    {
+        foreach (var overlay in _blackoutOverlays.Values)
+        {
+            overlay.BringToFront();
+        }
+    }
+
     public void Toggle()
     {
         if (_isBlackedOut)
