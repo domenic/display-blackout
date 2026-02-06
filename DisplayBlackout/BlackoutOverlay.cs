@@ -17,10 +17,20 @@ public sealed partial class BlackoutOverlay : IDisposable
 {
     private const string WindowClassName = "DisplayBlackoutOverlay";
     private const uint WS_EX_TRANSPARENT = 0x00000020;
+    private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+    private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
 
     private static readonly object s_classLock = new();
     private static bool s_classRegistered;
     private static WndProcDelegate? s_wndProc;
+
+    private static readonly List<BlackoutOverlay> s_activeOverlays = [];
+    private static nint s_winEventHook;
+    private static WinEventDelegate? s_winEventProc;
+
+    private delegate void WinEventDelegate(
+        nint hWinEventHook, uint eventType, nint hwnd, int idObject,
+        int idChild, uint idEventThread, uint dwmsEventTime);
 
     private uint _exStyle;
     private nint _hwnd1;
@@ -86,6 +96,12 @@ public sealed partial class BlackoutOverlay : IDisposable
 
         ShowWindow(_hwnd1, 4); // SW_SHOWNOACTIVATE
         ShowWindow(_hwnd2, 4); // SW_SHOWNOACTIVATE
+
+        lock (s_activeOverlays)
+        {
+            s_activeOverlays.Add(this);
+            EnsureWinEventHookInstalled();
+        }
     }
 
     /// <summary>
@@ -128,6 +144,55 @@ public sealed partial class BlackoutOverlay : IDisposable
         if (_hwnd2 != 0)
         {
             SetWindowLongPtrW(_hwnd2, GWL_EXSTYLE, (nint)_exStyle);
+        }
+    }
+
+    /// <summary>
+    /// Brings the overlay windows to the front, ensuring they stay topmost.
+    /// </summary>
+    public void BringToFront()
+    {
+        const int HWND_TOPMOST = -1;
+        const uint SWP_NOMOVE = 0x0002;
+        const uint SWP_NOSIZE = 0x0001;
+        const uint SWP_NOACTIVATE = 0x0010;
+        const uint flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
+
+        if (_hwnd1 != 0)
+        {
+            SetWindowPos(_hwnd1, HWND_TOPMOST, 0, 0, 0, 0, flags);
+        }
+        if (_hwnd2 != 0)
+        {
+            SetWindowPos(_hwnd2, HWND_TOPMOST, 0, 0, 0, 0, flags);
+        }
+    }
+
+    private static void EnsureWinEventHookInstalled()
+    {
+        if (s_winEventHook != 0) return;
+
+        s_winEventProc = WinEventProc;
+        s_winEventHook = SetWinEventHook(
+            EVENT_SYSTEM_FOREGROUND,
+            EVENT_SYSTEM_FOREGROUND,
+            0,
+            s_winEventProc,
+            0,
+            0,
+            WINEVENT_OUTOFCONTEXT);
+    }
+
+    private static void WinEventProc(
+        nint hWinEventHook, uint eventType, nint hwnd, int idObject,
+        int idChild, uint idEventThread, uint dwmsEventTime)
+    {
+        lock (s_activeOverlays)
+        {
+            foreach (var overlay in s_activeOverlays)
+            {
+                overlay.BringToFront();
+            }
         }
     }
 
@@ -176,6 +241,17 @@ public sealed partial class BlackoutOverlay : IDisposable
         {
             DestroyWindow(_hwnd2);
             _hwnd2 = 0;
+        }
+
+        lock (s_activeOverlays)
+        {
+            s_activeOverlays.Remove(this);
+            if (s_activeOverlays.Count == 0 && s_winEventHook != 0)
+            {
+                UnhookWinEvent(s_winEventHook);
+                s_winEventHook = 0;
+                s_winEventProc = null;
+            }
         }
     }
 
@@ -241,4 +317,20 @@ public sealed partial class BlackoutOverlay : IDisposable
     [LibraryImport("user32.dll", SetLastError = true)]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static partial nint SetWindowLongPtrW(nint hWnd, int nIndex, nint dwNewLong);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+    [LibraryImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial nint SetWinEventHook(
+        uint eventMin, uint eventMax, nint hmodWinEventProc,
+        WinEventDelegate pfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+    [LibraryImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool UnhookWinEvent(nint hWinEventHook);
 }
