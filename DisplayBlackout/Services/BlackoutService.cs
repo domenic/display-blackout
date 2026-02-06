@@ -43,7 +43,6 @@ public sealed partial class BlackoutService : IDisposable
     {
         var displays = DisplayArea.FindAll();
         var primaryId = DisplayArea.Primary?.DisplayId.Value;
-        var currentDisplayIds = new HashSet<ulong>();
 
         for (int i = 0; i < displays.Count; i++)
         {
@@ -51,7 +50,6 @@ public sealed partial class BlackoutService : IDisposable
             var displayId = display.DisplayId.Value;
             var bounds = display.OuterBounds;
             var boundsKey = SettingsService.GetMonitorKey(bounds);
-            currentDisplayIds.Add(displayId);
 
             bool shouldBlackOut = _selectedMonitorBounds != null
                 ? _selectedMonitorBounds.Contains(boundsKey)
@@ -69,14 +67,6 @@ public sealed partial class BlackoutService : IDisposable
                 _blackoutOverlays[displayId].Dispose();
                 _blackoutOverlays.Remove(displayId);
             }
-        }
-
-        // Remove overlays for displays that no longer exist
-        var toRemove = _blackoutOverlays.Keys.Where(id => !currentDisplayIds.Contains(id)).ToList();
-        foreach (var id in toRemove)
-        {
-            _blackoutOverlays[id].Dispose();
-            _blackoutOverlays.Remove(id);
         }
     }
 
