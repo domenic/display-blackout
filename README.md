@@ -70,6 +70,12 @@ I ended up picking the following technology stack:
 
   Thus, this application succumbs to the tragedy of the commons along with all the others, and uses .NET AOT and trimming to bundle the appropriate parts of the .NET runtime into its distributed binary. What a waste.
 
+- **Hand-written P/Invoke over [CsWin32](https://github.com/microsoft/CsWin32).** CsWin32 is a source generator that generates P/Invoke declarations, structs, and constants from Windows metadata. It eliminates the need to hand-write P/Invoke declarations, and provides nice typed handles and wrappers.
+
+  However, CsWin32 generates its P/Invoke layer in such a way that structs like `WNDCLASSEXW` get `char*` pointer fields instead of `string?`, requiring `unsafe` code and `fixed` blocks from the calling C#. Our hand-written P/Invoke does not require this, allowing us to keep all code safe. See [an example from this project](https://github.com/microsoft/CsWin32/discussions/912#discussioncomment-15715302).
+
+  I have doubts about whether I've chosen the right path here, as CsWin32 seems to be the current Microsoft-promoted approach. But the code is just so much grosser with CsWin32, so I can't really understand why someone would use it.
+
 - **When in doubt, emulate PowerToys**. The [PowerToys](https://github.com/microsoft/PowerToys/) project was the best example of a complex, modern, and open-source WinUI app that I could find. I took inspiration from it on various UI patterns.
 
 - **Other miscellaneous decisions**:

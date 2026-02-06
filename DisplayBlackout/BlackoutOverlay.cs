@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
+using static DisplayBlackout.NativeMethods;
 
 namespace DisplayBlackout;
 
@@ -16,76 +17,82 @@ namespace DisplayBlackout;
 public sealed partial class BlackoutOverlay : IDisposable
 {
     private const string WindowClassName = "DisplayBlackoutOverlay";
-    private const uint WS_EX_TRANSPARENT = 0x00000020;
 
     private static readonly object s_classLock = new();
     private static bool s_classRegistered;
     private static WndProcDelegate? s_wndProc;
 
-    private uint _exStyle;
+    private WINDOW_EX_STYLE _exStyle;
     private nint _hwnd1;
     private nint _hwnd2;
-
-    private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
 
     public BlackoutOverlay(RectInt32 bounds, int opacityPercent = 100, bool clickThrough = false)
     {
         EnsureWindowClassRegistered();
 
-        // See class remarks for why we use two windows instead of one.
-        int halfHeight = bounds.Height / 2;
-
-        // WS_EX_LAYERED (0x00080000) enables per-window alpha transparency
-        // WS_EX_TRANSPARENT (0x00000020) makes the window click-through (added conditionally)
-        _exStyle = 0x00000080 | 0x00000008 | 0x08000000 | 0x00080000; // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED
-        if (clickThrough)
+        try
         {
-            _exStyle |= WS_EX_TRANSPARENT;
+            // See class remarks for why we use two windows instead of one.
+            int halfHeight = bounds.Height / 2;
+
+            _exStyle = WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
+                       WINDOW_EX_STYLE.WS_EX_TOPMOST |
+                       WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
+                       WINDOW_EX_STYLE.WS_EX_LAYERED;
+            if (clickThrough)
+            {
+                _exStyle |= WINDOW_EX_STYLE.WS_EX_TRANSPARENT;
+            }
+
+            _hwnd1 = CreateWindowExW(
+                _exStyle,
+                WindowClassName,
+                null,
+                WINDOW_STYLE.WS_POPUP,
+                bounds.X,
+                bounds.Y,
+                bounds.Width,
+                halfHeight,
+                0,
+                0,
+                0,
+                0);
+
+            if (_hwnd1 == 0)
+            {
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
+            }
+
+            _hwnd2 = CreateWindowExW(
+                _exStyle,
+                WindowClassName,
+                null,
+                WINDOW_STYLE.WS_POPUP,
+                bounds.X,
+                bounds.Y + halfHeight,
+                bounds.Width,
+                bounds.Height - halfHeight,
+                0,
+                0,
+                0,
+                0);
+
+            if (_hwnd2 == 0)
+            {
+                throw new Win32Exception(Marshal.GetLastPInvokeError());
+            }
+
+            // Set initial opacity
+            SetOpacity(opacityPercent);
+
+            ShowWindow(_hwnd1, SHOW_WINDOW_CMD.SW_SHOWNOACTIVATE);
+            ShowWindow(_hwnd2, SHOW_WINDOW_CMD.SW_SHOWNOACTIVATE);
         }
-
-        _hwnd1 = CreateWindowExW(
-            _exStyle,
-            WindowClassName,
-            null,
-            0x80000000, // WS_POPUP
-            bounds.X,
-            bounds.Y,
-            bounds.Width,
-            halfHeight,
-            0,
-            0,
-            0,
-            0);
-
-        if (_hwnd1 == 0)
+        catch
         {
-            throw new Win32Exception(Marshal.GetLastPInvokeError());
+            Dispose();
+            throw;
         }
-
-        _hwnd2 = CreateWindowExW(
-            _exStyle,
-            WindowClassName,
-            null,
-            0x80000000, // WS_POPUP
-            bounds.X,
-            bounds.Y + halfHeight,
-            bounds.Width,
-            bounds.Height - halfHeight,
-            0,
-            0,
-            0,
-            0);
-
-        if (_hwnd2 == 0)
-        {
-            throw new Win32Exception(Marshal.GetLastPInvokeError());
-        }
-
-        // Set initial opacity
-        SetOpacity(opacityPercent);
-
-        ShowWindow(_hwnd1, 4); // SW_SHOWNOACTIVATE
-        ShowWindow(_hwnd2, 4); // SW_SHOWNOACTIVATE
     }
 
     /// <summary>
@@ -95,15 +102,14 @@ public sealed partial class BlackoutOverlay : IDisposable
     public void SetOpacity(int opacityPercent)
     {
         byte alpha = (byte)(opacityPercent * 255 / 100);
-        const uint LWA_ALPHA = 0x00000002;
 
-        if (_hwnd1 != 0)
+        if (_hwnd1 != 0 && !SetLayeredWindowAttributes(_hwnd1, 0, alpha, LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA))
         {
-            SetLayeredWindowAttributes(_hwnd1, 0, alpha, LWA_ALPHA);
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
-        if (_hwnd2 != 0)
+        if (_hwnd2 != 0 && !SetLayeredWindowAttributes(_hwnd2, 0, alpha, LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA))
         {
-            SetLayeredWindowAttributes(_hwnd2, 0, alpha, LWA_ALPHA);
+            throw new Win32Exception(Marshal.GetLastPInvokeError());
         }
     }
 
@@ -113,21 +119,20 @@ public sealed partial class BlackoutOverlay : IDisposable
     /// <param name="clickThrough">If true, mouse events pass through to windows underneath.</param>
     public void SetClickThrough(bool clickThrough)
     {
-        uint newExStyle = clickThrough
-            ? _exStyle | WS_EX_TRANSPARENT
-            : _exStyle & ~WS_EX_TRANSPARENT;
+        var newExStyle = clickThrough
+            ? _exStyle | WINDOW_EX_STYLE.WS_EX_TRANSPARENT
+            : _exStyle & ~WINDOW_EX_STYLE.WS_EX_TRANSPARENT;
 
         if (newExStyle == _exStyle) return;
         _exStyle = newExStyle;
 
-        const int GWL_EXSTYLE = -20;
         if (_hwnd1 != 0)
         {
-            SetWindowLongPtrW(_hwnd1, GWL_EXSTYLE, (nint)_exStyle);
+            SetWindowLongPtrW(_hwnd1, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (nint)_exStyle);
         }
         if (_hwnd2 != 0)
         {
-            SetWindowLongPtrW(_hwnd2, GWL_EXSTYLE, (nint)_exStyle);
+            SetWindowLongPtrW(_hwnd2, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, (nint)_exStyle);
         }
     }
 
@@ -136,12 +141,12 @@ public sealed partial class BlackoutOverlay : IDisposable
     /// </summary>
     public void BringToFront()
     {
-        const int HWND_TOPMOST = -1;
-        const uint SWP_NOMOVE = 0x0002;
-        const uint SWP_NOSIZE = 0x0001;
-        const uint SWP_NOACTIVATE = 0x0010;
-        const uint flags = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE;
+        const SET_WINDOW_POS_FLAGS flags =
+            SET_WINDOW_POS_FLAGS.SWP_NOMOVE |
+            SET_WINDOW_POS_FLAGS.SWP_NOSIZE |
+            SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE;
 
+        // Best-effort: called frequently on focus changes, so we don't throw on failure.
         if (_hwnd1 != 0)
         {
             SetWindowPos(_hwnd1, HWND_TOPMOST, 0, 0, 0, 0, flags);
@@ -166,8 +171,8 @@ public sealed partial class BlackoutOverlay : IDisposable
                 cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
                 lpfnWndProc = Marshal.GetFunctionPointerForDelegate(s_wndProc),
                 hInstance = GetModuleHandleW(null),
-                hCursor = LoadCursorW(0, 32512), // IDC_ARROW
-                hbrBackground = GetStockObject(4), // BLACK_BRUSH
+                hCursor = LoadCursorW(0, IDC_ARROW),
+                hbrBackground = GetStockObject(GET_STOCK_OBJECT_FLAGS.BLACK_BRUSH),
                 lpszClassName = WindowClassName
             };
 
@@ -199,72 +204,4 @@ public sealed partial class BlackoutOverlay : IDisposable
             _hwnd2 = 0;
         }
     }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct WNDCLASSEXW
-    {
-        public uint cbSize;
-        public uint style;
-        public nint lpfnWndProc;
-        public int cbClsExtra;
-        public int cbWndExtra;
-        public nint hInstance;
-        public nint hIcon;
-        public nint hCursor;
-        public nint hbrBackground;
-        public string? lpszMenuName;
-        public string? lpszClassName;
-        public nint hIconSm;
-    }
-
-    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static extern ushort RegisterClassExW(ref WNDCLASSEXW lpwcx);
-
-    [LibraryImport("user32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint CreateWindowExW(
-        uint dwExStyle, string lpClassName, string? lpWindowName, uint dwStyle,
-        int x, int y, int nWidth, int nHeight,
-        nint hWndParent, nint hMenu, nint hInstance, nint lpParam);
-
-    [LibraryImport("user32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool ShowWindow(nint hWnd, int nCmdShow);
-
-    [LibraryImport("user32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool DestroyWindow(nint hWnd);
-
-    [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint DefWindowProcW(nint hWnd, uint msg, nint wParam, nint lParam);
-
-    [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint GetModuleHandleW(string? lpModuleName);
-
-    [LibraryImport("gdi32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint GetStockObject(int i);
-
-    [LibraryImport("user32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint LoadCursorW(nint hInstance, int lpCursorName);
-
-    [LibraryImport("user32.dll", SetLastError = true)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SetLayeredWindowAttributes(nint hwnd, uint crKey, byte bAlpha, uint dwFlags);
-
-    [LibraryImport("user32.dll", SetLastError = true)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint SetWindowLongPtrW(nint hWnd, int nIndex, nint dwNewLong);
-
-    [LibraryImport("user32.dll", SetLastError = true)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 }
