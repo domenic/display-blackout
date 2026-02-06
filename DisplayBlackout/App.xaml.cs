@@ -37,6 +37,7 @@ public sealed partial class App : Application, IDisposable
 
         SystemEventService.Instance.HotkeyPressed += (_, _) => ToggleBlackout();
         SystemEventService.Instance.DisplayChanged += (_, _) => OnDisplayChanged();
+        SystemEventService.Instance.FocusChanged += (_, _) => _blackoutService.BringAllToFront();
 
         _iconActivePath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
         _iconInactivePath = Path.Combine(AppContext.BaseDirectory, "icon-inactive.ico");

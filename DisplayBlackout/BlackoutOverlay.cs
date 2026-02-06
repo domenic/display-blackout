@@ -17,22 +17,10 @@ public sealed partial class BlackoutOverlay : IDisposable
 {
     private const string WindowClassName = "DisplayBlackoutOverlay";
     private const uint WS_EX_TRANSPARENT = 0x00000020;
-    private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
-    private const uint EVENT_OBJECT_FOCUS = 0x8005;
-    private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
 
     private static readonly object s_classLock = new();
     private static bool s_classRegistered;
     private static WndProcDelegate? s_wndProc;
-
-    private static readonly List<BlackoutOverlay> s_activeOverlays = [];
-    private static nint s_foregroundHook;
-    private static nint s_focusHook;
-    private static WinEventDelegate? s_winEventProc;
-
-    private delegate void WinEventDelegate(
-        nint hWinEventHook, uint eventType, nint hwnd, int idObject,
-        int idChild, uint idEventThread, uint dwmsEventTime);
 
     private uint _exStyle;
     private nint _hwnd1;
@@ -98,12 +86,6 @@ public sealed partial class BlackoutOverlay : IDisposable
 
         ShowWindow(_hwnd1, 4); // SW_SHOWNOACTIVATE
         ShowWindow(_hwnd2, 4); // SW_SHOWNOACTIVATE
-
-        lock (s_activeOverlays)
-        {
-            s_activeOverlays.Add(this);
-            EnsureWinEventHookInstalled();
-        }
     }
 
     /// <summary>
@@ -170,42 +152,6 @@ public sealed partial class BlackoutOverlay : IDisposable
         }
     }
 
-    private static void EnsureWinEventHookInstalled()
-    {
-        if (s_foregroundHook != 0) return;
-
-        s_winEventProc = WinEventProc;
-        s_foregroundHook = SetWinEventHook(
-            EVENT_SYSTEM_FOREGROUND,
-            EVENT_SYSTEM_FOREGROUND,
-            0,
-            s_winEventProc,
-            0,
-            0,
-            WINEVENT_OUTOFCONTEXT);
-        s_focusHook = SetWinEventHook(
-            EVENT_OBJECT_FOCUS,
-            EVENT_OBJECT_FOCUS,
-            0,
-            s_winEventProc,
-            0,
-            0,
-            WINEVENT_OUTOFCONTEXT);
-    }
-
-    private static void WinEventProc(
-        nint hWinEventHook, uint eventType, nint hwnd, int idObject,
-        int idChild, uint idEventThread, uint dwmsEventTime)
-    {
-        lock (s_activeOverlays)
-        {
-            foreach (var overlay in s_activeOverlays)
-            {
-                overlay.BringToFront();
-            }
-        }
-    }
-
     private static void EnsureWindowClassRegistered()
     {
         lock (s_classLock)
@@ -251,19 +197,6 @@ public sealed partial class BlackoutOverlay : IDisposable
         {
             DestroyWindow(_hwnd2);
             _hwnd2 = 0;
-        }
-
-        lock (s_activeOverlays)
-        {
-            s_activeOverlays.Remove(this);
-            if (s_activeOverlays.Count == 0 && s_foregroundHook != 0)
-            {
-                UnhookWinEvent(s_foregroundHook);
-                UnhookWinEvent(s_focusHook);
-                s_foregroundHook = 0;
-                s_focusHook = 0;
-                s_winEventProc = null;
-            }
         }
     }
 
@@ -334,15 +267,4 @@ public sealed partial class BlackoutOverlay : IDisposable
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
-
-    [LibraryImport("user32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static partial nint SetWinEventHook(
-        uint eventMin, uint eventMax, nint hmodWinEventProc,
-        WinEventDelegate pfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
-
-    [LibraryImport("user32.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool UnhookWinEvent(nint hWinEventHook);
 }
