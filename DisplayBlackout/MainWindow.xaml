@@ -10,8 +10,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Width="1004"
-    Height="747"
-    PersistenceId="MainWindow_v2">
+    Height="821"
+    PersistenceId="MainWindow_v3">
 
     <winex:WindowEx.SystemBackdrop>
         <MicaBackdrop />
@@ -77,6 +77,14 @@
                         StepFrequency="1"
                         SnapsTo="StepValues"
                         ValueChanged="OpacitySlider_ValueChanged" />
+            </controls:SettingsCard>
+
+            <controls:SettingsCard x:Uid="ClickThroughCard">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B0;" />
+                </controls:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="ClickThroughToggle"
+                              Toggled="ClickThroughToggle_Toggled" />
             </controls:SettingsCard>
 
             <!-- Activation section -->

@@ -37,6 +37,9 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
 
         // Initialize opacity slider
         OpacitySlider.Value = _blackoutService.Opacity;
+
+        // Initialize click-through toggle
+        ClickThroughToggle.IsOn = _blackoutService.ClickThrough;
     }
 
     private async Task InitializeStartupToggleAsync()
@@ -213,6 +216,12 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
         int newOpacity = (int)e.NewValue;
         if (newOpacity == _blackoutService.Opacity) return;
         _blackoutService.UpdateOpacity(newOpacity);
+    }
+
+    private void ClickThroughToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (ClickThroughToggle.IsOn == _blackoutService.ClickThrough) return;
+        _blackoutService.UpdateClickThrough(ClickThroughToggle.IsOn);
     }
 
 }

@@ -16,16 +16,19 @@ namespace DisplayBlackout;
 public sealed partial class BlackoutOverlay : IDisposable
 {
     private const string WindowClassName = "DisplayBlackoutOverlay";
+    private const uint WS_EX_TRANSPARENT = 0x00000020;
+
     private static readonly object s_classLock = new();
     private static bool s_classRegistered;
     private static WndProcDelegate? s_wndProc;
 
+    private uint _exStyle;
     private nint _hwnd1;
     private nint _hwnd2;
 
     private delegate nint WndProcDelegate(nint hwnd, uint msg, nint wParam, nint lParam);
 
-    public BlackoutOverlay(RectInt32 bounds, int opacityPercent = 100)
+    public BlackoutOverlay(RectInt32 bounds, int opacityPercent = 100, bool clickThrough = false)
     {
         EnsureWindowClassRegistered();
 
@@ -33,10 +36,15 @@ public sealed partial class BlackoutOverlay : IDisposable
         int halfHeight = bounds.Height / 2;
 
         // WS_EX_LAYERED (0x00080000) enables per-window alpha transparency
-        const uint exStyle = 0x00000080 | 0x00000008 | 0x08000000 | 0x00080000; // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED
+        // WS_EX_TRANSPARENT (0x00000020) makes the window click-through (added conditionally)
+        _exStyle = 0x00000080 | 0x00000008 | 0x08000000 | 0x00080000; // WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_LAYERED
+        if (clickThrough)
+        {
+            _exStyle |= WS_EX_TRANSPARENT;
+        }
 
         _hwnd1 = CreateWindowExW(
-            exStyle,
+            _exStyle,
             WindowClassName,
             null,
             0x80000000, // WS_POPUP
@@ -55,7 +63,7 @@ public sealed partial class BlackoutOverlay : IDisposable
         }
 
         _hwnd2 = CreateWindowExW(
-            exStyle,
+            _exStyle,
             WindowClassName,
             null,
             0x80000000, // WS_POPUP
@@ -96,6 +104,30 @@ public sealed partial class BlackoutOverlay : IDisposable
         if (_hwnd2 != 0)
         {
             SetLayeredWindowAttributes(_hwnd2, 0, alpha, LWA_ALPHA);
+        }
+    }
+
+    /// <summary>
+    /// Sets whether the overlay windows are click-through.
+    /// </summary>
+    /// <param name="clickThrough">If true, mouse events pass through to windows underneath.</param>
+    public void SetClickThrough(bool clickThrough)
+    {
+        uint newExStyle = clickThrough
+            ? _exStyle | WS_EX_TRANSPARENT
+            : _exStyle & ~WS_EX_TRANSPARENT;
+
+        if (newExStyle == _exStyle) return;
+        _exStyle = newExStyle;
+
+        const int GWL_EXSTYLE = -20;
+        if (_hwnd1 != 0)
+        {
+            SetWindowLongPtrW(_hwnd1, GWL_EXSTYLE, (nint)_exStyle);
+        }
+        if (_hwnd2 != 0)
+        {
+            SetWindowLongPtrW(_hwnd2, GWL_EXSTYLE, (nint)_exStyle);
         }
     }
 
@@ -205,4 +237,8 @@ public sealed partial class BlackoutOverlay : IDisposable
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetLayeredWindowAttributes(nint hwnd, uint crKey, byte bAlpha, uint dwFlags);
+
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static partial nint SetWindowLongPtrW(nint hWnd, int nIndex, nint dwNewLong);
 }

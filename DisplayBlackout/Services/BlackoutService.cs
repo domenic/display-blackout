@@ -8,6 +8,7 @@ public sealed partial class BlackoutService : IDisposable
     private readonly Dictionary<ulong, BlackoutOverlay> _blackoutOverlays = [];
     private HashSet<string>? _selectedMonitorBounds;
     private int _opacity;
+    private bool _clickThrough;
     private bool _isBlackedOut;
     private bool _disposed;
 
@@ -16,6 +17,7 @@ public sealed partial class BlackoutService : IDisposable
         _settingsService = settingsService;
         _selectedMonitorBounds = _settingsService.LoadSelectedMonitorBounds();
         _opacity = _settingsService.LoadOpacity();
+        _clickThrough = _settingsService.LoadClickThrough();
     }
 
     public bool IsBlackedOut => _isBlackedOut;
@@ -57,6 +59,26 @@ public sealed partial class BlackoutService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets whether click-through is enabled.
+    /// </summary>
+    public bool ClickThrough => _clickThrough;
+
+    /// <summary>
+    /// Updates whether the overlay is click-through.
+    /// </summary>
+    public void UpdateClickThrough(bool clickThrough)
+    {
+        _clickThrough = clickThrough;
+        _settingsService.SaveClickThrough(_clickThrough);
+
+        // Update existing overlays
+        foreach (var overlay in _blackoutOverlays.Values)
+        {
+            overlay.SetClickThrough(_clickThrough);
+        }
+    }
+
     public void Toggle()
     {
         if (_isBlackedOut)
@@ -92,7 +114,7 @@ public sealed partial class BlackoutService : IDisposable
 
             if (!shouldBlackOut) continue;
 
-            var overlay = new BlackoutOverlay(bounds, _opacity);
+            var overlay = new BlackoutOverlay(bounds, _opacity, _clickThrough);
             _blackoutOverlays[displayId] = overlay;
         }
 

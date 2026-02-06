@@ -7,6 +7,7 @@ public sealed class SettingsService
 {
     private const string SelectedMonitorBoundsKey = "SelectedMonitorBounds";
     private const string OpacityKey = "Opacity";
+    private const string ClickThroughKey = "ClickThrough";
     private const int DefaultOpacity = 100;
 
     // Legacy key from before we switched to bounds-based identification
@@ -70,5 +71,19 @@ public sealed class SettingsService
     public void SaveOpacity(int opacity)
     {
         _localSettings.Values[OpacityKey] = opacity;
+    }
+
+    public bool LoadClickThrough()
+    {
+        if (_localSettings.Values.TryGetValue(ClickThroughKey, out var value) && value is bool clickThrough)
+        {
+            return clickThrough;
+        }
+        return false;
+    }
+
+    public void SaveClickThrough(bool clickThrough)
+    {
+        _localSettings.Values[ClickThroughKey] = clickThrough;
     }
 }
