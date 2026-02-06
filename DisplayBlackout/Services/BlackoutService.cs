@@ -32,6 +32,52 @@ public sealed partial class BlackoutService : IDisposable
     {
         _selectedMonitorBounds = monitorBounds;
         _settingsService.SaveSelectedMonitorBounds(monitorBounds);
+
+        if (_isBlackedOut)
+        {
+            RefreshOverlays();
+        }
+    }
+
+    private void RefreshOverlays()
+    {
+        var displays = DisplayArea.FindAll();
+        var primaryId = DisplayArea.Primary?.DisplayId.Value;
+        var currentDisplayIds = new HashSet<ulong>();
+
+        for (int i = 0; i < displays.Count; i++)
+        {
+            var display = displays[i];
+            var displayId = display.DisplayId.Value;
+            var bounds = display.OuterBounds;
+            var boundsKey = SettingsService.GetMonitorKey(bounds);
+            currentDisplayIds.Add(displayId);
+
+            bool shouldBlackOut = _selectedMonitorBounds != null
+                ? _selectedMonitorBounds.Contains(boundsKey)
+                : displayId != primaryId;
+
+            bool hasOverlay = _blackoutOverlays.ContainsKey(displayId);
+
+            if (shouldBlackOut && !hasOverlay)
+            {
+                var overlay = new BlackoutOverlay(bounds, _opacity, _clickThrough);
+                _blackoutOverlays[displayId] = overlay;
+            }
+            else if (!shouldBlackOut && hasOverlay)
+            {
+                _blackoutOverlays[displayId].Dispose();
+                _blackoutOverlays.Remove(displayId);
+            }
+        }
+
+        // Remove overlays for displays that no longer exist
+        var toRemove = _blackoutOverlays.Keys.Where(id => !currentDisplayIds.Contains(id)).ToList();
+        foreach (var id in toRemove)
+        {
+            _blackoutOverlays[id].Dispose();
+            _blackoutOverlays.Remove(id);
+        }
     }
 
     /// <summary>
