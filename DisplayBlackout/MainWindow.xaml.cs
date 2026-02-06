@@ -79,6 +79,17 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
         });
     }
 
+    /// <summary>
+    /// Rebuilds the monitor list from the current display configuration.
+    /// Called by App when display topology changes.
+    /// </summary>
+    public void RebuildMonitorList()
+    {
+        Monitors.Clear();
+        LoadMonitors();
+        UpdateBlackoutServiceSelection();
+    }
+
     private void BlackoutToggle_Toggled(object sender, RoutedEventArgs e)
     {
         // Only toggle if the state actually differs (avoids double-toggle from event handler)

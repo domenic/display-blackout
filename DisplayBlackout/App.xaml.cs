@@ -15,10 +15,8 @@ public sealed partial class App : Application, IDisposable
     private TrayIcon? _trayIcon;
     private MainWindow? _settingsWindow;
     private bool _isShowingSettings;
-    private Window? _hiddenWindow;
     private SettingsService? _settingsService;
     private BlackoutService? _blackoutService;
-    private HotkeyService? _hotkeyService;
     private string? _iconActivePath;
     private string? _iconInactivePath;
     private bool _disposed;
@@ -37,12 +35,8 @@ public sealed partial class App : Application, IDisposable
         _settingsService = new SettingsService();
         _blackoutService = new BlackoutService(_settingsService);
 
-        // Create a hidden window for hotkey messages
-        _hiddenWindow = new Window { Title = "DisplayBlackoutHidden" };
-
-        _hotkeyService = new HotkeyService();
-        _hotkeyService.HotkeyPressed += (_, _) => ToggleBlackout();
-        _hotkeyService.Register(_hiddenWindow);
+        SystemEventService.Instance.HotkeyPressed += (_, _) => ToggleBlackout();
+        SystemEventService.Instance.DisplayChanged += (_, _) => OnDisplayChanged();
 
         _iconActivePath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
         _iconInactivePath = Path.Combine(AppContext.BaseDirectory, "icon-inactive.ico");
@@ -80,6 +74,18 @@ public sealed partial class App : Application, IDisposable
     private void ToggleBlackout()
     {
         _blackoutService?.Toggle();
+    }
+
+    private void OnDisplayChanged()
+    {
+        // Turn off blackout - overlay positions are now invalid
+        if (_blackoutService?.IsBlackedOut == true)
+        {
+            _blackoutService.Restore();
+        }
+
+        // Rebuild settings window monitor list if open
+        _settingsWindow?.RebuildMonitorList();
     }
 
     private void OnBlackoutStateChanged(object? sender, BlackoutStateChangedEventArgs e)
@@ -121,9 +127,8 @@ public sealed partial class App : Application, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _hotkeyService?.Dispose();
+        SystemEventService.Instance.Dispose();
         _blackoutService?.Dispose();
-        _hiddenWindow?.Close();
         _trayIcon?.Dispose();
         GC.SuppressFinalize(this);
     }
