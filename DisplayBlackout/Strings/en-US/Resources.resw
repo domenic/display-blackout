@@ -201,4 +201,12 @@
     <value>Adjust how dark the blackout overlay appears</value>
     <comment>Description for the opacity slider settings card</comment>
   </data>
+  <data name="ClickThroughCard.Header" xml:space="preserve">
+    <value>Click through</value>
+    <comment>Header for the click-through toggle settings card</comment>
+  </data>
+  <data name="ClickThroughCard.Description" xml:space="preserve">
+    <value>Allow mouse and touch to pass through the overlay</value>
+    <comment>Description for the click-through toggle settings card</comment>
+  </data>
 </root>
