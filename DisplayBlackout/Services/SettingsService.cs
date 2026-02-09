@@ -86,4 +86,9 @@ public sealed class SettingsService
     {
         _localSettings.Values[ClickThroughKey] = clickThrough;
     }
+
+    public void ResetAll()
+    {
+        _localSettings.Values.Clear();
+    }
 }
