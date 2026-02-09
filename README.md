@@ -5,10 +5,11 @@ A Windows 11 system tray utility that blacks out selected displays on demand. Us
 ## Features
 
 - **Selective blackout**: Choose which displays to black out via a visual monitor picker
+- **Adjustable opacity**: Control how dark the blackout overlay is
+- **Click-through mode**: Interact with blacked-out displays without disabling blackout
 - **Global hotkey**: Toggle blackout with Win+Shift+B
 - **System tray integration**: Quick access from the notification area
 - **Start with Windows**: Optional auto-start on login
-- **Lightweight**: Native AOT compiled, no .NET runtime required
 
 ## Screenshots
 
