@@ -28,11 +28,15 @@ public sealed partial class App : Application, IDisposable
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        bool openSettings = Environment.GetCommandLineArgs()
-            .Skip(1) // Skip executable path
-            .Any(arg => arg.Equals("/OpenSettings", StringComparison.OrdinalIgnoreCase));
+        var cliArgs = Environment.GetCommandLineArgs().Skip(1).ToArray(); // Skip executable path
+        bool openSettings = cliArgs.Any(arg => arg.Equals("/OpenSettings", StringComparison.OrdinalIgnoreCase));
+        bool resetSettings = cliArgs.Any(arg => arg.Equals("/ResetSettings", StringComparison.OrdinalIgnoreCase));
 
         _settingsService = new SettingsService();
+        if (resetSettings)
+        {
+            _settingsService.ResetAll();
+        }
         _blackoutService = new BlackoutService(_settingsService);
 
         SystemEventService.Instance.HotkeyPressed += (_, _) => ToggleBlackout();
@@ -51,11 +55,11 @@ public sealed partial class App : Application, IDisposable
 
         if (openSettings)
         {
-            ShowSettings();
+            ShowSettings(centerOnScreen: resetSettings);
         }
     }
 
-    private void ShowSettings()
+    private void ShowSettings(bool centerOnScreen = false)
     {
         // Guard against rapid calls (e.g., double-clicking tray icon) that could create
         // multiple windows if a second call arrives while the constructor is still running.
@@ -67,6 +71,11 @@ public sealed partial class App : Application, IDisposable
             _settingsWindow = new MainWindow(_blackoutService!);
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
             _isShowingSettings = false;
+        }
+
+        if (centerOnScreen)
+        {
+            _settingsWindow.CenterOnScreen();
         }
 
         _settingsWindow.Activate();
