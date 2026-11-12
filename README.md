@@ -13,14 +13,15 @@ A Windows 11 system tray utility that blacks out selected displays on demand. Us
 
 ## Interface language
 
-In Settings, use **Display language** to choose **Follow system**, **简体中文**, or
-**English**. Click **Restart to apply** to reload the interface and tray menu.
-The choice is saved across launches. Returning to Follow system clears the app's
-language override; unsupported system languages fall back to English.
-Restarting restores any blacked-out displays before opening Settings again.
+In Settings, choose **Follow system**, **简体中文**, or **English** under
+**Display language**. Changes apply immediately to Settings, switch labels,
+monitor accessibility names, and the tray menu and tooltip. The choice is saved
+across launches. Switching languages preserves blackout, opacity, click-through,
+monitor selection, window position and scroll position.
+Unsupported system languages fall back to English.
 
-在设置中通过“界面语言”选择“跟随系统”、“简体中文”或“English”，
-点击“重启并应用”后生效。语言选择会保留，覆盖设置页、托盘菜单和无障碍名称。
+在设置中通过“界面语言”选择“跟随系统”、“简体中文”或“English”，立即生效，
+无需重启，不会中断黑屏。语言偏好会自动保存。
 
 ## Screenshots
 

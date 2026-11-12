@@ -1,16 +1,15 @@
 using DisplayBlackout.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using WinUIEx;
 
 namespace DisplayBlackout;
 
 public sealed partial class App : Application, IDisposable
 {
-    private static ResourceLoader s_resourceLoader = null!;
+    private static LocalizationService s_resourceLoader = null!;
 
-    public static ResourceLoader ResourceLoader => s_resourceLoader;
+    public static LocalizationService ResourceLoader => s_resourceLoader;
 
     private TrayIcon? _trayIcon;
     private MainWindow? _settingsWindow;
@@ -24,10 +23,8 @@ public sealed partial class App : Application, IDisposable
     public App()
     {
         // Apply the saved language before XAML and resource loaders are created.
-        Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = new SettingsService().LoadLanguage();
-        s_resourceLoader = new ResourceLoader();
+        s_resourceLoader = new LocalizationService(new SettingsService().LoadLanguage());
         InitializeComponent();
-        UnhandledException += (_, e) => File.WriteAllText(Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "startup-error.txt"), e.Exception.ToString());
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -40,8 +37,7 @@ public sealed partial class App : Application, IDisposable
         if (resetSettings)
         {
             _settingsService.ResetAll();
-            Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = string.Empty;
-            s_resourceLoader = new ResourceLoader();
+            s_resourceLoader.SetLanguage(string.Empty);
         }
         _blackoutService = new BlackoutService(_settingsService);
 
@@ -85,6 +81,17 @@ public sealed partial class App : Application, IDisposable
         }
 
         _settingsWindow.Activate();
+    }
+
+    public void ChangeLanguage(string language)
+    {
+        _settingsService!.SaveLanguage(language);
+        s_resourceLoader.SetLanguage(language);
+        _settingsWindow?.RefreshLanguage();
+        if (_trayIcon is not null)
+        {
+            _trayIcon.Tooltip = s_resourceLoader.GetString("TrayIconTooltip");
+        }
     }
 
     private void ToggleBlackout()

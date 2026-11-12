@@ -213,7 +213,7 @@
     <value>界面语言</value>
   </data>
   <data name="LanguageCard.Description" xml:space="preserve">
-    <value>选择界面显示语言，重启应用后生效。</value>
+    <value>选择界面显示语言，立即生效。</value>
   </data>
   <data name="LanguageComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>界面语言</value>
@@ -221,10 +221,6 @@
   <data name="LanguageSystem.Content" xml:space="preserve">
     <value>跟随系统</value>
   </data>
-  <data name="RestartLanguageButton.Content" xml:space="preserve">
-    <value>重启并应用</value>
-  </data>
-  <data name="RestartLanguageError.Text" xml:space="preserve">
-    <value>重启失败。请从托盘菜单退出应用后重新打开，以应用语言设置。</value>
-  </data>
+  <data name="ToggleOn" xml:space="preserve"><value>开</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>关</value></data>
 </root>

@@ -16,24 +16,24 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
     private readonly BlackoutService _blackoutService;
     private bool _isUpdatingStartupToggle;
     private readonly SettingsService _languageSettings = new();
-    private readonly string _initialLanguage;
+    private string _startupDescriptionKey = "RunAtStartupCard.Description";
     private bool _isInitializingLanguage = true;
 
     public ObservableCollection<MonitorItem> Monitors { get; } = [];
 
     public MainWindow(BlackoutService blackoutService)
     {
-        _initialLanguage = _languageSettings.LoadLanguage();
+        var initialLanguage = _languageSettings.LoadLanguage();
         _blackoutService = blackoutService;
         InitializeComponent();
-        LanguageComboBox.SelectedIndex = _initialLanguage switch
+        LanguageComboBox.SelectedIndex = initialLanguage switch
         {
             "zh-CN" => 1,
             "en-US" => 2,
             _ => 0
         };
         _isInitializingLanguage = false;
-        Title = App.ResourceLoader.GetString("AppDisplayName");
+        RefreshLanguage();
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "icon.ico"));
         AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
 
@@ -60,19 +60,39 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             return;
         }
         var language = (string)item.Tag;
-        _languageSettings.SaveLanguage(language);
-        RestartLanguageButton.Visibility = language == _initialLanguage ? Visibility.Collapsed : Visibility.Visible;
-        RestartLanguageError.Visibility = Visibility.Collapsed;
+        ((App)Application.Current).ChangeLanguage(language);
     }
 
-    private void RestartLanguageButton_Click(object sender, RoutedEventArgs e)
+    public void RefreshLanguage()
     {
-        // Remove overlays before restarting; never leave a black screen behind.
-        _blackoutService.Restore();
-        var result = Microsoft.Windows.AppLifecycle.AppInstance.Restart("/OpenSettings");
-        if (result != Windows.ApplicationModel.Core.AppRestartFailureReason.RestartPending)
+        var resources = App.ResourceLoader;
+        SettingsScrollViewer.Language = resources.Language;
+        Title = resources.GetString("AppDisplayName");
+        Instructions.Text = resources.GetString("Instructions.Text");
+        DisplayBlackoutCard.Header = resources.GetString("DisplayBlackoutCard.Header");
+        DisplayBlackoutCard.Description = resources.GetString("DisplayBlackoutCard.Description");
+        OpacityCard.Header = resources.GetString("OpacityCard.Header");
+        OpacityCard.Description = resources.GetString("OpacityCard.Description");
+        ClickThroughCard.Header = resources.GetString("ClickThroughCard.Header");
+        ClickThroughCard.Description = resources.GetString("ClickThroughCard.Description");
+        LanguageCard.Header = resources.GetString("LanguageCard.Header");
+        LanguageCard.Description = resources.GetString("LanguageCard.Description");
+        LanguageSystem.Content = resources.GetString("LanguageSystem.Content");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(LanguageComboBox, resources.GetString("LanguageComboBox.AutomationProperties.Name"));
+        ActivationSectionHeader.Text = resources.GetString("ActivationSectionHeader.Text");
+        RunAtStartupCard.Header = resources.GetString("RunAtStartupCard.Header");
+        RunAtStartupCard.Description = resources.GetString(_startupDescriptionKey);
+        ActivationShortcutCard.Header = resources.GetString("ActivationShortcutCard.Header");
+        ActivationShortcutCard.Description = resources.GetString("ActivationShortcutCard.Description");
+        KeyShift.Text = resources.GetString("KeyShift.Text");
+        foreach (var toggle in new[] { BlackoutToggle, ClickThroughToggle, RunAtStartupToggle })
         {
-            RestartLanguageError.Visibility = Visibility.Visible;
+            toggle.OnContent = resources.GetString("ToggleOn");
+            toggle.OffContent = resources.GetString("ToggleOff");
+        }
+        foreach (var monitor in Monitors)
+        {
+            monitor.RefreshAccessibleName();
         }
     }
 
@@ -87,12 +107,14 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
             if (startupTask.State == StartupTaskState.DisabledByUser)
             {
                 RunAtStartupToggle.IsEnabled = false;
-                RunAtStartupCard.Description = App.ResourceLoader.GetString("RunAtStartupDisabledByUser");
+                _startupDescriptionKey = "RunAtStartupDisabledByUser";
+                RunAtStartupCard.Description = App.ResourceLoader.GetString(_startupDescriptionKey);
             }
             else if (startupTask.State == StartupTaskState.DisabledByPolicy)
             {
                 RunAtStartupToggle.IsEnabled = false;
-                RunAtStartupCard.Description = App.ResourceLoader.GetString("RunAtStartupDisabledByPolicy");
+                _startupDescriptionKey = "RunAtStartupDisabledByPolicy";
+                RunAtStartupCard.Description = App.ResourceLoader.GetString(_startupDescriptionKey);
             }
 
             _isUpdatingStartupToggle = false;
@@ -306,6 +328,8 @@ public sealed partial class MonitorItem : INotifyPropertyChanged
             }
         }
     }
+
+    public void RefreshAccessibleName() => OnPropertyChanged(nameof(AccessibleName));
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

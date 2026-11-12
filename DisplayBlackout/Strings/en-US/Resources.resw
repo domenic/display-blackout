@@ -213,7 +213,7 @@
     <value>Display language</value>
   </data>
   <data name="LanguageCard.Description" xml:space="preserve">
-    <value>Choose the interface language. Restart to apply changes.</value>
+    <value>Choose the interface language. Changes apply immediately.</value>
   </data>
   <data name="LanguageComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>Display language</value>
@@ -221,10 +221,6 @@
   <data name="LanguageSystem.Content" xml:space="preserve">
     <value>Follow system</value>
   </data>
-  <data name="RestartLanguageButton.Content" xml:space="preserve">
-    <value>Restart to apply</value>
-  </data>
-  <data name="RestartLanguageError.Text" xml:space="preserve">
-    <value>Could not restart. Exit from the tray menu and reopen the app to apply the language.</value>
-  </data>
+  <data name="ToggleOn" xml:space="preserve"><value>On</value></data>
+  <data name="ToggleOff" xml:space="preserve"><value>Off</value></data>
 </root>
