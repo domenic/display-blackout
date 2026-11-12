@@ -87,6 +87,24 @@
                               Toggled="ClickThroughToggle_Toggled" />
             </controls:SettingsCard>
 
+            <controls:SettingsCard x:Uid="LanguageCard">
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE774;" />
+                </controls:SettingsCard.HeaderIcon>
+                <StackPanel Spacing="8" MinWidth="200">
+                    <ComboBox x:Name="LanguageComboBox" x:Uid="LanguageComboBox"
+                              HorizontalAlignment="Stretch" SelectionChanged="LanguageComboBox_SelectionChanged">
+                        <ComboBoxItem x:Uid="LanguageSystem" Tag="" />
+                        <ComboBoxItem Content="简体中文" Tag="zh-CN" />
+                        <ComboBoxItem Content="English" Tag="en-US" />
+                    </ComboBox>
+                    <Button x:Name="RestartLanguageButton" x:Uid="RestartLanguageButton"
+                            Visibility="Collapsed" Click="RestartLanguageButton_Click" />
+                    <TextBlock x:Name="RestartLanguageError" x:Uid="RestartLanguageError"
+                               Visibility="Collapsed" TextWrapping="Wrap" MaxWidth="260" />
+                </StackPanel>
+            </controls:SettingsCard>
+
             <!-- Activation section -->
             <TextBlock x:Uid="ActivationSectionHeader"
                        Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" />

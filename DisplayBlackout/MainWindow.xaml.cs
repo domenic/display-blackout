@@ -15,13 +15,24 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
 
     private readonly BlackoutService _blackoutService;
     private bool _isUpdatingStartupToggle;
+    private readonly SettingsService _languageSettings = new();
+    private readonly string _initialLanguage;
+    private bool _isInitializingLanguage = true;
 
     public ObservableCollection<MonitorItem> Monitors { get; } = [];
 
     public MainWindow(BlackoutService blackoutService)
     {
+        _initialLanguage = _languageSettings.LoadLanguage();
         _blackoutService = blackoutService;
         InitializeComponent();
+        LanguageComboBox.SelectedIndex = _initialLanguage switch
+        {
+            "zh-CN" => 1,
+            "en-US" => 2,
+            _ => 0
+        };
+        _isInitializingLanguage = false;
         Title = App.ResourceLoader.GetString("AppDisplayName");
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "icon.ico"));
         AppWindow.TitleBar.PreferredTheme = TitleBarTheme.UseDefaultAppMode;
@@ -40,6 +51,29 @@ public sealed partial class MainWindow : WinUIEx.WindowEx
 
         // Initialize click-through toggle
         ClickThroughToggle.IsOn = _blackoutService.ClickThrough;
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+        if (_isInitializingLanguage || LanguageComboBox.SelectedItem is not Microsoft.UI.Xaml.Controls.ComboBoxItem item)
+        {
+            return;
+        }
+        var language = (string)item.Tag;
+        _languageSettings.SaveLanguage(language);
+        RestartLanguageButton.Visibility = language == _initialLanguage ? Visibility.Collapsed : Visibility.Visible;
+        RestartLanguageError.Visibility = Visibility.Collapsed;
+    }
+
+    private void RestartLanguageButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Remove overlays before restarting; never leave a black screen behind.
+        _blackoutService.Restore();
+        var result = Microsoft.Windows.AppLifecycle.AppInstance.Restart("/OpenSettings");
+        if (result != Windows.ApplicationModel.Core.AppRestartFailureReason.RestartPending)
+        {
+            RestartLanguageError.Visibility = Visibility.Visible;
+        }
     }
 
     private async Task InitializeStartupToggleAsync()

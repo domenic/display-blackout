@@ -8,7 +8,7 @@ namespace DisplayBlackout;
 
 public sealed partial class App : Application, IDisposable
 {
-    private static readonly ResourceLoader s_resourceLoader = new();
+    private static ResourceLoader s_resourceLoader = null!;
 
     public static ResourceLoader ResourceLoader => s_resourceLoader;
 
@@ -23,7 +23,11 @@ public sealed partial class App : Application, IDisposable
 
     public App()
     {
+        // Apply the saved language before XAML and resource loaders are created.
+        Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = new SettingsService().LoadLanguage();
+        s_resourceLoader = new ResourceLoader();
         InitializeComponent();
+        UnhandledException += (_, e) => File.WriteAllText(Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "startup-error.txt"), e.Exception.ToString());
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -36,6 +40,8 @@ public sealed partial class App : Application, IDisposable
         if (resetSettings)
         {
             _settingsService.ResetAll();
+            Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = string.Empty;
+            s_resourceLoader = new ResourceLoader();
         }
         _blackoutService = new BlackoutService(_settingsService);
 

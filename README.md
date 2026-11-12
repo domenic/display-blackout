@@ -11,6 +11,17 @@ A Windows 11 system tray utility that blacks out selected displays on demand. Us
 - **System tray integration**: Quick access from the notification area
 - **Start with Windows**: Optional auto-start on login
 
+## Interface language
+
+In Settings, use **Display language** to choose **Follow system**, **简体中文**, or
+**English**. Click **Restart to apply** to reload the interface and tray menu.
+The choice is saved across launches. Returning to Follow system clears the app's
+language override; unsupported system languages fall back to English.
+Restarting restores any blacked-out displays before opening Settings again.
+
+在设置中通过“界面语言”选择“跟随系统”、“简体中文”或“English”，
+点击“重启并应用”后生效。语言选择会保留，覆盖设置页、托盘菜单和无障碍名称。
+
 ## Screenshots
 
 ![The settings screen](./screenshots/settings-window-light-mode.png)

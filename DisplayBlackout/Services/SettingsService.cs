@@ -6,6 +6,7 @@ namespace DisplayBlackout.Services;
 public sealed class SettingsService
 {
     private const string SelectedMonitorBoundsKey = "SelectedMonitorBounds";
+    private const string LanguageKey = "Language";
     private const string OpacityKey = "Opacity";
     private const string ClickThroughKey = "ClickThrough";
     private const int DefaultOpacity = 100;
@@ -85,6 +86,25 @@ public sealed class SettingsService
     public void SaveClickThrough(bool clickThrough)
     {
         _localSettings.Values[ClickThroughKey] = clickThrough;
+    }
+
+    public string LoadLanguage()
+    {
+        return _localSettings.Values.TryGetValue(LanguageKey, out var value)
+            && value is string language && language is "en-US" or "zh-CN"
+            ? language : string.Empty;
+    }
+
+    public void SaveLanguage(string language)
+    {
+        if (language is "en-US" or "zh-CN")
+        {
+            _localSettings.Values[LanguageKey] = language;
+        }
+        else
+        {
+            _localSettings.Values.Remove(LanguageKey);
+        }
     }
 
     public void ResetAll()
